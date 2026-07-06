@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>North Padel — Pitlane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --court:#0B3B45; --court-dark:#062B33; --line:#F4F1E6;
+    --ball:#D7F34B; --clay:#C75B39; --ink:#0E1A1B; --muted:#6E8589;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{min-height:100vh; font-family:'Inter',sans-serif; background:var(--court-dark); color:var(--line); -webkit-font-smoothing:antialiased;}
+
+  /* LOGIN */
+  #login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-box{
+    background:var(--court); border:1px solid rgba(244,241,230,0.15); border-radius:6px;
+    padding:44px 36px; max-width:380px; width:100%; text-align:center;
+  }
+  .login-box .logo{font-family:'Anton',sans-serif; font-size:28px; color:var(--line); text-transform:uppercase;}
+  .login-box .sub{font-family:'Space Mono',monospace; font-size:11px; color:var(--ball); letter-spacing:0.12em; margin-top:4px; margin-bottom:32px;}
+  .login-box input[type="password"]{
+    width:100%; padding:14px; background:var(--court-dark); border:1px solid rgba(244,241,230,0.25);
+    color:var(--line); border-radius:2px; font-family:'Inter',sans-serif; font-size:15px; margin-bottom:10px;
+  }
+  .login-box input[type="password"]::placeholder{color:rgba(244,241,230,0.35);}
+  .btn-primary{
+    background:var(--ball); color:var(--court-dark); border:none; font-weight:700;
+    font-size:15px; padding:14px 28px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+    width:100%; transition:transform 0.15s;
+  }
+  .btn-primary:hover{transform:translateY(-1px);}
+  .error-msg{color:var(--clay); font-family:'Space Mono',monospace; font-size:12px; margin-top:10px; display:none;}
+
+  /* DASHBOARD */
+  #dashboard{display:none; min-height:100vh;}
+  .topbar{
+    background:rgba(11,59,69,0.95); backdrop-filter:blur(6px);
+    position:sticky; top:0; z-index:50;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px clamp(16px,4vw,48px); border-bottom:1px solid rgba(244,241,230,0.12);
+  }
+  .topbar .logo{font-family:'Anton',sans-serif; font-size:20px; color:var(--line); display:flex; align-items:center; gap:8px;}
+  .topbar .logo::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--ball); display:inline-block;}
+  .topbar .badge{font-family:'Space Mono',monospace; font-size:11px; color:var(--ball); letter-spacing:0.1em;}
+  .topbar .logout-btn{
+    background:transparent; color:rgba(244,241,230,0.5); border:1px solid rgba(244,241,230,0.2);
+    font-size:13px; padding:8px 16px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .topbar .logout-btn:hover{color:var(--line);}
+
+  .main{padding:36px clamp(16px,4vw,48px); max-width:1100px; margin:0 auto;}
+
+  /* SUMMARY CARDS */
+  .summary-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-bottom:36px;}
+  .card{background:rgba(244,241,230,0.05); border:1px solid rgba(244,241,230,0.15); border-radius:4px; padding:22px 20px;}
+  .card .card-label{font-family:'Space Mono',monospace; font-size:11px; color:var(--ball); letter-spacing:0.1em; text-transform:uppercase;}
+  .card .card-value{font-family:'Anton',sans-serif; font-size:44px; color:var(--line); margin-top:6px; line-height:1;}
+  .card .card-sub{font-size:12px; color:rgba(244,241,230,0.45); margin-top:6px;}
+
+  /* FILTERS */
+  .filters{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:24px;}
+  .filters input[type="date"]{
+    padding:10px 12px; background:var(--court); border:1px solid rgba(244,241,230,0.25);
+    color:var(--line); border-radius:2px; font-family:'Inter',sans-serif; font-size:14px;
+  }
+  .filters .btn-sm{
+    background:var(--ball); color:var(--court-dark); border:none; font-weight:700;
+    font-size:13px; padding:10px 18px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .filters .btn-ghost{
+    background:transparent; color:rgba(244,241,230,0.6); border:1px solid rgba(244,241,230,0.2);
+    font-size:13px; padding:10px 14px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .section-label{font-family:'Space Mono',monospace; font-size:12px; color:var(--ball); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:12px;}
+
+  /* BOOKING ROWS */
+  .booking-item{
+    display:grid; grid-template-columns:160px 1fr 1fr auto auto;
+    gap:16px; align-items:center;
+    padding:16px 20px; background:rgba(244,241,230,0.04);
+    border:1px solid rgba(244,241,230,0.12); border-radius:2px; margin-bottom:8px;
+  }
+  @media(max-width:700px){
+    .booking-item{grid-template-columns:1fr; gap:8px; padding:16px;}
+  }
+  .booking-item .b-time{font-family:'Space Mono',monospace; font-size:11px; color:var(--ball);}
+  .booking-item .b-slot{font-weight:700; font-size:15px; color:var(--line); margin-top:3px;}
+  .booking-item .b-name{font-weight:600; color:var(--line);}
+  .booking-item .b-phone{font-size:13px; color:rgba(244,241,230,0.55); margin-top:2px;}
+  .booking-item .b-extras{font-size:12px; color:rgba(244,241,230,0.5); margin-top:2px;}
+  .booking-item .b-total{font-family:'Anton',sans-serif; font-size:24px; color:var(--ball); white-space:nowrap;}
+  .cancel-btn{
+    background:rgba(199,91,57,0.15); color:var(--clay); border:1px solid rgba(199,91,57,0.35);
+    font-size:12px; padding:7px 12px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+    white-space:nowrap;
+  }
+  .cancel-btn:hover{background:rgba(199,91,57,0.25);}
+  .empty-state{font-family:'Space Mono',monospace; font-size:13px; color:rgba(244,241,230,0.35); padding:24px 0; font-style:italic;}
+  .loading{font-family:'Space Mono',monospace; font-size:12px; color:rgba(244,241,230,0.4); padding:16px 0; animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:0.4;} 50%{opacity:1;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="logo">North Padel</div>
+    <div class="sub">PITLANE · ΔΙΑΧΕΙΡΙΣΗ</div>
+    <input type="password" id="pass-input" placeholder="Κωδικός πρόσβασης" autocomplete="current-password">
+    <button class="btn-primary" onclick="doLogin()">Είσοδος</button>
+    <div class="error-msg" id="error-msg">Λάθος κωδικός</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div>
+      <div class="logo">North Padel</div>
+    </div>
+    <div class="badge">PITLANE</div>
+    <button class="logout-btn" onclick="doLogout()">Έξοδος</button>
+  </div>
+
+  <div class="main">
+    <div class="summary-grid" id="summary-grid">
+      <div class="card"><div class="card-label">Φόρτωση...</div></div>
+    </div>
+
+    <div class="section-label">Κρατήσεις</div>
+    <div class="filters">
+      <input type="date" id="date-filter">
+      <button class="btn-sm" onclick="loadBookings()">Εφαρμογή</button>
+      <button class="btn-ghost" onclick="document.getElementById('date-filter').value=''; loadBookings();">Όλες</button>
+      <button class="btn-ghost" onclick="loadBookings()">↻ Ανανέωση</button>
+    </div>
+    <div id="bookings-list"><div class="loading">Φόρτωση κρατήσεων...</div></div>
+  </div>
+</div>
+
+<script>
+  const PASS_HASH = '5d2453662bbaf11a89d31ce97cf94e63b923c3453f09284ebc0f026d0872d719';
+
+  async function hashPassword(pass){
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pass);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  const FB   = 'https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app';
+
+  const morningSlots = [
+    {start:'09:00',end:'10:30'},{start:'10:30',end:'12:00'},{start:'12:00',end:'13:30'},
+    {start:'13:30',end:'15:00'},{start:'15:00',end:'16:30'},{start:'16:30',end:'18:00'},
+  ];
+  const eveningSlots = [
+    {start:'18:00',end:'19:30'},{start:'19:30',end:'21:00'},{start:'21:00',end:'22:30'},
+    {start:'22:30',end:'00:00'},{start:'00:00',end:'01:30'},
+  ];
+  const allSlots = [...morningSlots, ...eveningSlots];
+
+  function pad(n){ return n<10?'0'+n:''+n; }
+  function toDateStr(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  function formatDate(d){
+    const dt = new Date(d+'T00:00:00');
+    return dt.toLocaleDateString('el-GR',{weekday:'short',month:'short',day:'numeric'});
+  }
+
+  // ---- auth ----
+  document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+  async function doLogin(){
+    const inputHash = await hashPassword(document.getElementById('pass-input').value);
+    if(inputHash === PASS_HASH){
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display    = 'block';
+      document.getElementById('date-filter').value = toDateStr(new Date());
+      loadBookings();
+    } else {
+      document.getElementById('error-msg').style.display = 'block';
+    }
+  }
+
+  function doLogout(){
+    document.getElementById('dashboard').style.display    = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('pass-input').value = '';
+    document.getElementById('error-msg').style.display = 'none';
+  }
+
+  // ---- data ----
+  async function loadBookings(){
+    const list = document.getElementById('bookings-list');
+    list.innerHTML = '<div class="loading">Φόρτωση...</div>';
+
+    let data = {};
+    try{
+      const res = await fetch(`${FB}/bookings.json`);
+      if(res.ok) data = await res.json() || {};
+    }catch(e){}
+
+    let bookings = [];
+    Object.entries(data).forEach(([date, slots]) => {
+      if(!slots) return;
+      Object.entries(slots).forEach(([timeKey, val]) => {
+        if(!val) return;
+        const hour = timeKey.slice(0,2)+':'+timeKey.slice(2,4);
+        const slot = allSlots.find(s=>s.start===hour);
+        bookings.push({
+          date, start:hour, end:slot?.end||'',
+          name:    typeof val==='object' ? val.name||'—'    : '—',
+          phone:   typeof val==='object' ? val.phone||'—'   : '—',
+          rackets: typeof val==='object' ? val.rackets||0   : 0,
+          balls:   typeof val==='object' ? val.balls||false : false,
+          total:   typeof val==='object' ? val.total||'€44' : '€44',
+        });
+      });
+    });
+
+    bookings.sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+
+    // summary
+    const todayStr   = toDateStr(new Date());
+    const todayCount = bookings.filter(b=>b.date===todayStr).length;
+    const totalRev   = bookings.reduce((s,b)=>s+parseInt((b.total||'0').replace('€','')||0),0);
+    const upcomingCount = bookings.filter(b=>b.date>=todayStr).length;
+    document.getElementById('summary-grid').innerHTML = `
+      <div class="card"><div class="card-label">Σύνολο κρατήσεων</div><div class="card-value">${bookings.length}</div></div>
+      <div class="card"><div class="card-label">Σήμερα</div><div class="card-value">${todayCount}</div><div class="card-sub">${todayStr}</div></div>
+      <div class="card"><div class="card-label">Προσεχείς</div><div class="card-value">${upcomingCount}</div></div>
+      <div class="card"><div class="card-label">Συνολικά έσοδα</div><div class="card-value">€${totalRev}</div></div>
+    `;
+
+    // filter
+    const f = document.getElementById('date-filter').value;
+    const filtered = f ? bookings.filter(b=>b.date===f) : bookings;
+
+    if(!filtered.length){
+      list.innerHTML = '<div class="empty-state">Δεν βρέθηκαν κρατήσεις.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(b=>`
+      <div class="booking-item">
+        <div>
+          <div class="b-time">${formatDate(b.date)}</div>
+          <div class="b-slot">${b.start} – ${b.end}</div>
+        </div>
+        <div>
+          <div class="b-name">${b.name}</div>
+          <div class="b-phone">${b.phone}</div>
+        </div>
+        <div>
+          ${b.rackets>0?`<div class="b-extras">🎾 ${b.rackets} ρακέτες</div>`:''}
+          ${b.balls?`<div class="b-extras">🟡 Premium Padel Balls</div>`:''}
+          ${!b.rackets&&!b.balls?'<div class="b-extras">—</div>':''}
+        </div>
+        <div class="b-total">${b.total}</div>
+        <div>
+          <button class="cancel-btn" onclick="cancelBooking('${b.date}','${b.start}','${b.name}')">Ακύρωση</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function cancelBooking(date, start, name){
+    if(!confirm(`Ακύρωση κράτησης;\n${formatDate(date)} · ${start}\n${name}`)) return;
+    const timeKey = start.replace(':','');
+    try{
+      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json`, {method:'DELETE'});
+      if(res.ok){
+        loadBookings();
+      } else {
+        alert('Σφάλμα κατά την ακύρωση.');
+      }
+    }catch(e){ alert('Σφάλμα σύνδεσης.'); }
+  }
+</script>
+</body>
+</html>

@@ -87,6 +87,15 @@
   }
   .combos-freebie strong{ color:var(--ball); }
 
+
+  /* ===== LANGUAGE TOGGLE ===== */
+  [data-lang="en"] .lang-el { display: none !important; }
+  [data-lang="en"] .lang-en { display: block !important; }
+  [data-lang="el"] .lang-en { display: none !important; }
+  [data-lang="el"] .lang-el { display: block !important; }
+  .lang-en { display: none; }
+  .lang-el { display: block; }
+
   /* ===== HERO ===== */
   .hero{
     position:relative; min-height:100vh;
@@ -373,7 +382,15 @@
 
 <nav>
   <div class="logo"><span class="logo-dot"></span>NORTH PADEL</div>
-  <a href="#booking" class="cta">Κλείσε γήπεδο</a>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button id="lang-toggle" onclick="toggleLang()" style="
+      background:rgba(244,241,230,0.1); border:1px solid rgba(244,241,230,0.25);
+      color:var(--line); padding:8px 14px; border-radius:2px; cursor:pointer;
+      font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.05em;">
+      🇬🇧 EN
+    </button>
+    <a href="#booking" class="cta" id="nav-cta">Κλείσε γήπεδο</a>
+  </div>
 </nav>
 
 <section class="hero">
@@ -949,7 +966,7 @@
       const btn   = document.createElement('button');
       btn.type = 'button';
       btn.className = 'slot' + (taken?' taken':'') + (selectedKey===key?' selected':'');
-      btn.innerHTML = `<span class="t">${slot.start} – ${slot.end}</span><span class="s">${taken?'Κλεισμένο':'90 λεπτά · €11/άτομο'}</span>`;
+      btn.innerHTML = `<span class="t">${slot.start} – ${slot.end}</span><span class="s">${taken ? (currentLang==='el'?'Κλεισμένο':'Booked') : (currentLang==='el'?'90 λεπτά · €11/άτομο':'90 min · €11/person')}</span>`;
       if(!taken) btn.addEventListener('click', () => selectSlot(key, slot));
       container.appendChild(btn);
     });
@@ -1082,6 +1099,314 @@
         <div><div class="bdate">${formatDate(b.date)} · ${b.start}</div><div>${b.name}</div></div>
         <div class="bdate">${b.total}</div>
       </div>`).join('');
+  }
+
+  // ===== LANGUAGE TOGGLE =====
+  const translations = {
+    el: {
+      navCta: 'Κλείσε γήπεδο',
+      langBtn: '🇬🇧 EN',
+      eyebrow: 'Ένα γήπεδο · 11 sessions την ημέρα',
+      heroH1: 'ΚΛΕΙΣΕ<br><span>ΓΗΠΕΔΟ.</span><br>ΠΑΙΞΕ ΤΟ<br>ΠΑΙΧΝΙΔΙ ΣΟΥ.',
+      heroLead: 'Το North Padel διαθέτει ένα γήπεδο φτιαγμένο για συναρπαστικούς αγώνες 1,5 ώρας — πρωινές συνεδρίες για δυναμικό ξεκίνημα, βραδινές για να κλείσεις τη μέρα σου. Διάλεξε ώρα παρακάτω.',
+      heroBtn: 'Κλείσε ώρα',
+      heroHours: 'Δες το ωράριο',
+      courtStatus: 'Κατάσταση γηπέδου',
+      courtName: 'Γήπεδο 1 — Ανοιχτό',
+      courtDuration: 'Διάρκεια συνεδρίας',
+      courtSlots: 'Ώρες / ημέρα',
+      courtSurface: 'Επιφάνεια',
+      courtSurfaceVal: 'Υπαίθριο glass-back',
+      courtPrice: 'Τιμή',
+      scheduleNum: '01 — ΠΡΟΓΡΑΜΜΑ',
+      scheduleTitle: 'Δύο ζώνες την ημέρα',
+      morningTag: 'ΗΜΕΡΑ',
+      morningHours: '09:00 – 18:00',
+      morningDesc: 'Έξι συνεδρίες: 09:00, 10:30, 12:00, 13:30, 15:00 και 16:30. Καλό φως, ήσυχο γήπεδο, εύκολο πάρκινγκ.',
+      eveningTag: 'ΒΡΑΔΥ',
+      eveningHours: '18:00 – 01:30',
+      eveningDesc: 'Πέντε συνεδρίες: 18:00, 19:30, 21:00, 22:30 και 00:00. Φωτιζόμενο γήπεδο για μετά τη δουλειά και chill παιχνίδια.',
+      formatTag: 'ΔΙΑΡΚΕΙΑ',
+      formatTitle: '1,5 ώρα, σταθερά',
+      formatDesc: 'Κάθε συνεδρία διαρκεί 90 λεπτά — αρκετά για πλήρη αγώνα και σωστή προθέρμανση. Μία κράτηση, ένα γήπεδο, χωρίς επικάλυψη.',
+      offersNum: '02 — ΠΡΟΣΦΟΡΕΣ',
+      offersTitle: 'Παίξε. Χαλάρωσε. Απόλαυσε.',
+      combo1Title: 'Γήπεδο + Πίτσα + Μπύρες',
+      combo1Items: '🎾 Γήπεδο Padel 4 ατόμων<br>🍕 1 Πίτσα<br>🍺 4 Μπύρες',
+      combo2Title: 'Γήπεδο + Sandwich + Μπύρες',
+      combo2Items: '🎾 Γήπεδο Padel 4 ατόμων<br>🥪 1 Club Sandwich<br>🍺 4 Μπύρες',
+      combo3Title: 'Γήπεδο + Μπέργκερ + Μπύρες',
+      combo3Items: '🎾 Γήπεδο Padel 4 ατόμων<br>🍔 4 Μπέργκερ<br>🍺 4 Μπύρες',
+      freebie: '☕ <strong>Δωρεάν Νερό & Καφές</strong> με τη χρήση του γηπέδου — Καθημερινά 08:00–14:00',
+      bookingNum: '03 — ΚΡΑΤΗΣΗ',
+      bookingTitle: 'Διάλεξε ώρα',
+      dateLabel: 'Ημερομηνία',
+      priceNote: '4 παίκτες ανά κράτηση · 90 λεπτά · πληρωμή κατά την άφιξη.<br>+€2/άτομο για ρακέτα · +€8 για Premium Padel Balls.',
+      myBookings: 'Οι κρατήσεις σου',
+      emptyState: 'Δεν υπάρχουν κρατήσεις ακόμα σε αυτή τη συνεδρία.',
+      morningSlot: 'Ημέρα',
+      eveningSlot: 'Βράδυ',
+      selectedSlot: 'Επιλεγμένη ώρα',
+      choosSlot: 'Διάλεξε ώρα παραπάνω',
+      nameLabel: 'Όνομα',
+      namePlaceholder: 'Το όνομά σου',
+      phoneLabel: 'Τηλέφωνο',
+      playersLabel: 'Παίκτες',
+      playersVal: 'Απαιτούνται 4 παίκτες ανά κράτηση',
+      racketsLabel: 'Ρακέτες (+€2/άτομο)',
+      racketsIncl: '✅ Συμπεριλαμβάνονται στο combo',
+      ballsLabel: 'Premium Padel Balls — σετ 3 (+€8)',
+      ballsNote: 'Δεν συμπεριλαμβάνεται στο combo',
+      comboLabel: 'Combo Προσφορά (προαιρετικό)',
+      comboNone: 'Χωρίς combo',
+      combo1Opt: '🍕 Combo 1 — Γήπεδο + Πίτσα + 4 Μπύρες (+€26)',
+      combo2Opt: '🥪 Combo 2 — Γήπεδο + Club Sandwich + 4 Μπύρες (+€21)',
+      combo3Opt: '🍔 Combo 3 — Γήπεδο + 4 Μπέργκερ + 4 Μπύρες (+€31)',
+      totalLabel: 'Σύνολο',
+      confirmBtn: 'Επιβεβαίωση κράτησης',
+      confirmMsg: 'Έγινε η κράτηση — τα λέμε στο γήπεδο.',
+      confirmTitle: 'Κράτηση Επιβεβαιώθηκε!',
+      confirmSub: 'Η κράτησή σου καταχωρήθηκε επιτυχώς.',
+      confirmCancel: 'Σε περίπτωση ακύρωσης επικοινωνήστε μαζί μας στο',
+      confirmClose: 'Κλείσιμο',
+      footerHours: 'Ωράριο',
+      footerBook: 'Κράτηση',
+      footerOffers: 'Προσφορές',
+      footerCall: 'Καλέστε μας',
+      footerPrivacy: 'Πολιτική Απορρήτου',
+      footerTerms: 'Όροι Χρήσης',
+      footerBottom: 'NORTH PADEL · ΕΝΑ ΓΗΠΕΔΟ · ΣΥΝΕΔΡΙΕΣ 90 ΛΕΠΤΩΝ',
+    },
+    en: {
+      navCta: 'Book the court',
+      langBtn: '🇬🇷 ΕΛ',
+      eyebrow: 'One court · 11 sessions a day',
+      heroH1: 'BOOK THE<br><span>COURT.</span><br>PLAY YOUR<br>GAME.',
+      heroLead: 'North Padel offers one court built for exciting 90-minute matches — morning sessions to start your day strong, evening sessions to close it out. Pick a slot below.',
+      heroBtn: 'Reserve a slot',
+      heroHours: 'See hours',
+      courtStatus: 'Court status',
+      courtName: 'Court 1 — Open',
+      courtDuration: 'Session length',
+      courtSlots: 'Slots / day',
+      courtSurface: 'Surface',
+      courtSurfaceVal: 'Outdoor glass-back',
+      courtPrice: 'Price',
+      scheduleNum: '01 — SCHEDULE',
+      scheduleTitle: 'Two windows a day',
+      morningTag: 'DAY',
+      morningHours: '09:00 – 18:00',
+      morningDesc: 'Six sessions: 09:00, 10:30, 12:00, 13:30, 15:00 and 16:30. Good light, quiet court, easy parking.',
+      eveningTag: 'EVENING',
+      eveningHours: '18:00 – 01:30',
+      eveningDesc: 'Five sessions: 18:00, 19:30, 21:00, 22:30 and 00:00. Floodlit court for after-work and chill games.',
+      formatTag: 'FORMAT',
+      formatTitle: '1.5 hours, fixed',
+      formatDesc: 'Every session is 90 minutes — enough for a full match plus a proper warm-up. One booking, one court, no overlap.',
+      offersNum: '02 — OFFERS',
+      offersTitle: 'Play. Relax. Enjoy.',
+      combo1Title: 'Court + Pizza + Beers',
+      combo1Items: '🎾 Padel Court for 4 players<br>🍕 1 Pizza<br>🍺 4 Beers',
+      combo2Title: 'Court + Sandwich + Beers',
+      combo2Items: '🎾 Padel Court for 4 players<br>🥪 1 Club Sandwich<br>🍺 4 Beers',
+      combo3Title: 'Court + Burgers + Beers',
+      combo3Items: '🎾 Padel Court for 4 players<br>🍔 4 Burgers<br>🍺 4 Beers',
+      freebie: '☕ <strong>Free Water & Coffee</strong> with court use — Daily 08:00–14:00',
+      bookingNum: '03 — BOOKING',
+      bookingTitle: 'Pick your slot',
+      dateLabel: 'Date',
+      priceNote: '4 players per booking · 90 min · pay on arrival.<br>+€2/person for racket · +€8 for Premium Padel Balls.',
+      myBookings: 'Your reservations',
+      emptyState: 'No reservations yet this session.',
+      morningSlot: 'Day',
+      eveningSlot: 'Evening',
+      selectedSlot: 'Selected slot',
+      choosSlot: 'Choose a slot above',
+      nameLabel: 'Name',
+      namePlaceholder: 'Your name',
+      phoneLabel: 'Phone',
+      playersLabel: 'Players',
+      playersVal: '4 players required per booking',
+      racketsLabel: 'Rackets (+€2/person)',
+      racketsIncl: '✅ Included in the combo',
+      ballsLabel: 'Premium Padel Balls — set of 3 (+€8)',
+      ballsNote: 'Not included in the combo',
+      comboLabel: 'Combo Offer (optional)',
+      comboNone: 'No combo',
+      combo1Opt: '🍕 Combo 1 — Court + Pizza + 4 Beers (+€26)',
+      combo2Opt: '🥪 Combo 2 — Court + Club Sandwich + 4 Beers (+€21)',
+      combo3Opt: '🍔 Combo 3 — Court + 4 Burgers + 4 Beers (+€31)',
+      totalLabel: 'Total',
+      confirmBtn: 'Confirm booking',
+      confirmMsg: 'Booked — see you on court!',
+      confirmTitle: 'Booking Confirmed!',
+      confirmSub: 'Your booking has been successfully registered.',
+      confirmCancel: 'To cancel, please contact us at',
+      confirmClose: 'Close',
+      footerHours: 'Hours',
+      footerBook: 'Book',
+      footerOffers: 'Offers',
+      footerCall: 'Call us',
+      footerPrivacy: 'Privacy Policy',
+      footerTerms: 'Terms of Use',
+      footerBottom: 'NORTH PADEL · ONE COURT · 90-MINUTE SESSIONS',
+    }
+  };
+
+  let currentLang = 'el';
+
+  function toggleLang(){
+    currentLang = currentLang === 'el' ? 'en' : 'el';
+    applyLang();
+  }
+
+  function applyLang(){
+    const t = translations[currentLang];
+    document.documentElement.setAttribute('lang', currentLang === 'el' ? 'el' : 'en');
+
+    // Nav
+    document.getElementById('lang-toggle').innerHTML = t.langBtn;
+    document.getElementById('nav-cta').textContent = t.navCta;
+
+    // Hero
+    document.querySelector('.eyebrow').innerHTML = '— ' + t.eyebrow;
+    document.querySelector('.hero h1').innerHTML = t.heroH1;
+    document.querySelector('.hero p.lead').textContent = t.heroLead;
+    document.querySelector('.hero-actions .btn-primary').textContent = t.heroBtn;
+    document.querySelector('.hero-actions .btn-ghost').textContent = t.heroHours;
+
+    // Court card
+    const cardLabels = document.querySelectorAll('.court-meta div span');
+    const cardValues = document.querySelectorAll('.court-meta div b');
+    if(cardLabels[0]) cardLabels[0].textContent = t.courtDuration;
+    if(cardLabels[1]) cardLabels[1].textContent = t.courtSlots;
+    if(cardLabels[2]) cardLabels[2].textContent = t.courtSurface;
+    if(cardLabels[3]) cardLabels[3].textContent = t.courtPrice;
+    if(cardValues[2]) cardValues[2].textContent = t.courtSurfaceVal;
+
+    // Schedule section
+    const scheduleNums = document.querySelectorAll('.num');
+    if(scheduleNums[0]) scheduleNums[0].textContent = t.scheduleNum;
+    const scheduleTitles = document.querySelectorAll('section.about h2');
+    if(scheduleTitles[0]) scheduleTitles[0].textContent = t.scheduleTitle;
+
+    const tags = document.querySelectorAll('.about-grid .tag');
+    const h4s  = document.querySelectorAll('.about-grid h4');
+    const ps   = document.querySelectorAll('.about-grid p');
+    if(tags[0]) tags[0].textContent = t.morningTag;
+    if(h4s[0])  h4s[0].textContent  = t.morningHours;
+    if(ps[0])   ps[0].textContent   = t.morningDesc;
+    if(tags[1]) tags[1].textContent = t.eveningTag;
+    if(h4s[1])  h4s[1].textContent  = t.eveningHours;
+    if(ps[1])   ps[1].textContent   = t.eveningDesc;
+    if(tags[2]) tags[2].textContent = t.formatTag;
+    if(h4s[2])  h4s[2].textContent  = t.formatTitle;
+    if(ps[2])   ps[2].textContent   = t.formatDesc;
+
+    // Offers section
+    if(scheduleNums[1]) scheduleNums[1].textContent = t.offersNum;
+    const offersTitles = document.querySelectorAll('section.combos h2');
+    if(offersTitles[0]) offersTitles[0].textContent = t.offersTitle;
+    const comboTitles = document.querySelectorAll('.combo-title');
+    const comboItems  = document.querySelectorAll('.combo-items');
+    if(comboTitles[0]) comboTitles[0].textContent = t.combo1Title;
+    if(comboItems[0])  comboItems[0].innerHTML    = t.combo1Items;
+    if(comboTitles[1]) comboTitles[1].textContent = t.combo2Title;
+    if(comboItems[1])  comboItems[1].innerHTML    = t.combo2Items;
+    if(comboTitles[2]) comboTitles[2].textContent = t.combo3Title;
+    if(comboItems[2])  comboItems[2].innerHTML    = t.combo3Items;
+    const freebie = document.querySelector('.combos-freebie');
+    if(freebie) freebie.innerHTML = t.freebie;
+
+    // Booking section
+    if(scheduleNums[2]) scheduleNums[2].textContent = t.bookingNum;
+    const bookingTitles = document.querySelectorAll('section.booking h2');
+    if(bookingTitles[0]) bookingTitles[0].textContent = t.bookingTitle;
+
+    // Form fields
+    const dateLabel = document.querySelector('label[for="play-date"]');
+    if(dateLabel) dateLabel.textContent = t.dateLabel;
+    const priceNote = document.querySelector('.price-note p');
+    if(priceNote) priceNote.innerHTML = t.priceNote;
+    const myBookingsH4 = document.querySelector('.my-bookings h4');
+    if(myBookingsH4) myBookingsH4.textContent = t.myBookings;
+    const emptyState = document.querySelector('.empty-state');
+    if(emptyState) emptyState.textContent = t.emptyState;
+
+    // Slots group labels
+    const slotsH4s = document.querySelectorAll('.slots-wrap h4');
+    if(slotsH4s[0]) slotsH4s[0].textContent = t.morningSlot;
+    if(slotsH4s[1]) slotsH4s[1].textContent = t.eveningSlot;
+
+    // Form
+    const selSlot = document.getElementById('selected-slot-display');
+    if(selSlot) selSlot.placeholder = t.choosSlot;
+    const selSlotLabel = selSlot ? selSlot.previousElementSibling : null;
+    if(selSlotLabel) selSlotLabel.textContent = t.selectedSlot;
+
+    const nameInput = document.getElementById('name');
+    if(nameInput) nameInput.placeholder = t.namePlaceholder;
+    const nameLabel2 = nameInput ? nameInput.previousElementSibling : null;
+    if(nameLabel2) nameLabel2.textContent = t.nameLabel;
+
+    const phoneLabel2 = document.querySelector('label[for="phone"]');
+    if(phoneLabel2) phoneLabel2.textContent = t.phoneLabel;
+
+    const racketsLabel = document.querySelector('label[for="rackets"]');
+    if(racketsLabel) racketsLabel.textContent = t.racketsLabel;
+
+    const racketsIncl = document.querySelector('#rackets-included div');
+    if(racketsIncl) racketsIncl.textContent = t.racketsIncl;
+
+    const ballsLabel2 = document.querySelector('label[for="balls"]');
+    if(ballsLabel2) ballsLabel2.textContent = t.ballsLabel;
+
+    const ballsNote = document.getElementById('balls-note');
+    if(ballsNote) ballsNote.textContent = t.ballsNote;
+
+    const comboLabel2 = document.querySelector('label[for="combo"]');
+    if(comboLabel2) comboLabel2.textContent = t.comboLabel;
+
+    const comboSel = document.getElementById('combo');
+    if(comboSel){
+      comboSel.options[0].text = t.comboNone;
+      comboSel.options[1].text = t.combo1Opt;
+      comboSel.options[2].text = t.combo2Opt;
+      comboSel.options[3].text = t.combo3Opt;
+    }
+
+    const totalLabel2 = document.querySelector('label[for="total-display"]') || document.querySelector('.field label:last-of-type');
+    const totalField = document.querySelectorAll('.booking-form .field');
+    totalField.forEach(f => {
+      const l = f.querySelector('label');
+      if(l && l.getAttribute('for') === 'total-display') l.textContent = t.totalLabel;
+    });
+
+    const confirmBtn = document.querySelector('.booking-form .btn-primary');
+    if(confirmBtn) confirmBtn.textContent = t.confirmBtn;
+
+    const confirmMsg = document.getElementById('confirm-msg');
+    if(confirmMsg) confirmMsg.textContent = t.confirmMsg;
+
+    // Confirmation modal
+    const confirmTitle = document.querySelector('.confirm-modal h3');
+    if(confirmTitle) confirmTitle.textContent = t.confirmTitle;
+    const confirmClose = document.querySelector('.confirm-modal .close-btn');
+    if(confirmClose) confirmClose.textContent = t.confirmClose;
+
+    // Footer
+    const footerLinks = document.querySelectorAll('.footer-links a');
+    if(footerLinks[0]) footerLinks[0].textContent = t.footerHours;
+    if(footerLinks[1]) footerLinks[1].textContent = t.footerBook;
+    if(footerLinks[2]) footerLinks[2].textContent = t.footerOffers;
+    if(footerLinks[3]) footerLinks[3].textContent = t.footerCall;
+    if(footerLinks[4]) footerLinks[4].textContent = t.footerPrivacy;
+    if(footerLinks[5]) footerLinks[5].textContent = t.footerTerms;
+    const footerBottom = document.querySelector('.footer-bottom');
+    if(footerBottom) footerBottom.textContent = t.footerBottom;
+
+    // Slot buttons re-render
+    renderSlots();
   }
 
   (async function init(){

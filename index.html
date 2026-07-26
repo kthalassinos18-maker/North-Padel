@@ -557,8 +557,18 @@
             <input type="tel" id="phone" placeholder="+30 ..." required>
           </div>
           <div class="field full">
-            <label>Παίκτες</label>
-            <input type="text" value="Απαιτούνται 4 παίκτες ανά κράτηση" readonly>
+            <label for="players-select">Αριθμός παικτών</label>
+            <select id="players-select" style="
+              background:var(--court); border:1px solid rgba(244,241,230,0.25); color:var(--line);
+              padding:12px 14px; border-radius:2px; font-family:'Inter',sans-serif; font-size:15px; width:100%;">
+              <option value="4">4 παίκτες</option>
+              <option value="2">2 παίκτες</option>
+            </select>
+            <div id="players-note" style="
+              margin-top:8px; padding:10px 14px; border-radius:2px; font-size:13px;
+              background:rgba(215,243,75,0.08); border:1px solid rgba(215,243,75,0.2);
+              color:rgba(244,241,230,0.75); display:none;">
+            </div>
           </div>
           <div class="field" id="rackets-field">
             <label for="rackets">Ρακέτες (+€2/άτομο)</label>
@@ -992,20 +1002,51 @@
     const balls    = document.getElementById('balls').checked;
     const combo    = parseInt(document.getElementById('combo').value) || 0;
     const hasCombo = combo > 0;
+    const players  = parseInt(document.getElementById('players-select').value) || 4;
 
     // show/hide rackets field
     document.getElementById('rackets-field').style.display    = hasCombo ? 'none' : '';
     document.getElementById('rackets-included').style.display = hasCombo ? '' : 'none';
     document.getElementById('balls-note').style.display       = hasCombo ? 'inline' : 'none';
 
-    // calculate total
-    const base  = hasCombo ? combo : (11*4);
-    const extra = hasCombo ? 0 : (rackets*2);
+    // determine slot hour for pricing
+    const slotHour = selectedDate ? (() => {
+      const slotKey = selectedKey || '';
+      const timePart = slotKey.split('|')[1] || '09:00';
+      return parseInt(timePart.split(':')[0]);
+    })() : 9;
+
+    const isAfter21 = slotHour >= 21 || slotHour === 0;
+
+    // pricing logic
+    let base = 0;
+    const note = document.getElementById('players-note');
+
+    if(hasCombo){
+      base = combo;
+      note.style.display = 'none';
+    } else if(players === 2){
+      if(isAfter21){
+        base = 44; // minimum 4-player charge
+        note.innerHTML = '⚠️ Μετά τις 21:00 ισχύει ελάχιστη χρέωση 4 ατόμων (€44)';
+        note.style.display = 'block';
+      } else {
+        base = 15 * 2; // €15/person for 2 players before 21:00
+        note.innerHTML = '💡 2 άτομα · €15/άτομο (ώρες εκτός αιχμής)' + (balls ? '' : '');
+        note.style.display = 'block';
+      }
+    } else {
+      base = 11 * 4; // standard 4-player pricing
+      note.style.display = 'none';
+    }
+
+    const extra = hasCombo ? 0 : (players === 2 && !isAfter21 ? 0 : (rackets*2));
     document.getElementById('total-display').value = '€' + (base + extra + (balls?8:0));
   }
   document.getElementById('rackets').addEventListener('input', updateTotal);
   document.getElementById('balls').addEventListener('change', updateTotal);
   document.getElementById('combo').addEventListener('change', updateTotal);
+  document.getElementById('players-select').addEventListener('change', updateTotal);
 
   document.getElementById('booking-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1031,6 +1072,7 @@
     const comboEl = document.getElementById('combo');
     const combo   = comboEl.options[comboEl.selectedIndex].text;
     const comboVal = parseInt(comboEl.value) || 0;
+    const players = document.getElementById('players-select').value;
     const total   = document.getElementById('total-display').value;
     if(!name || !phone) return;
 
@@ -1047,6 +1089,7 @@
       `Ώρα: ${start}%0A` +
       `Όνομα: ${name}%0A` +
       `Τηλέφωνο: ${phone}%0A` +
+      `Παίκτες: ${players}%0A` +
       `Ρακέτες: ${rackets}%0A` +
       `Premium Padel Balls: ${balls?'Ναι':'Όχι'}%0A` +
       `Combo: ${comboVal > 0 ? combo : 'Χωρίς combo'}%0A` +

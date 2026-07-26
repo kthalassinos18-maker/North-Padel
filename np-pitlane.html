@@ -101,6 +101,30 @@
     white-space:nowrap;
   }
   .cancel-btn:hover{background:rgba(199,91,57,0.25);}
+  .edit-btn{
+    background:rgba(215,243,75,0.1); color:var(--ball); border:1px solid rgba(215,243,75,0.3);
+    font-size:12px; padding:7px 12px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+    white-space:nowrap;
+  }
+  .edit-btn:hover{background:rgba(215,243,75,0.2);}
+
+  /* Edit modal */
+  .edit-overlay{
+    position:fixed; inset:0; background:rgba(6,27,33,0.85); z-index:500;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .edit-overlay.show{ display:flex; }
+  .edit-modal{
+    background:var(--court); border:1px solid rgba(244,241,230,0.2); border-radius:6px;
+    padding:32px; max-width:380px; width:100%;
+  }
+  .edit-modal h3{ font-family:'Anton',sans-serif; font-size:22px; color:var(--line); margin-bottom:6px; text-transform:uppercase; }
+  .edit-modal .edit-sub{ font-family:'Space Mono',monospace; font-size:12px; color:var(--ball); margin-bottom:20px; }
+  .edit-modal label{ font-family:'Space Mono',monospace; font-size:11px; color:rgba(244,241,230,0.6); letter-spacing:0.08em; text-transform:uppercase; display:block; margin-bottom:6px; }
+  .edit-modal input{ width:100%; padding:12px; background:var(--court-dark); border:1px solid rgba(244,241,230,0.25); color:var(--line); border-radius:2px; font-family:'Anton',sans-serif; font-size:24px; margin-bottom:16px; box-sizing:border-box; }
+  .edit-modal .edit-actions{ display:flex; gap:10px; }
+  .edit-modal .save-btn{ flex:1; background:var(--ball); color:var(--court-dark); border:none; font-weight:700; font-size:14px; padding:12px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .edit-modal .cancel-edit-btn{ background:transparent; color:rgba(244,241,230,0.5); border:1px solid rgba(244,241,230,0.2); font-size:14px; padding:12px 16px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif; }
   .empty-state{font-family:'Space Mono',monospace; font-size:13px; color:rgba(244,241,230,0.35); padding:24px 0; font-style:italic;}
   .loading{font-family:'Space Mono',monospace; font-size:12px; color:rgba(244,241,230,0.4); padding:16px 0; animation:pulse 1.2s infinite;}
   @keyframes pulse{0%,100%{opacity:0.4;} 50%{opacity:1;}}
@@ -264,6 +288,7 @@
         </div>
         <div class="b-total">${b.total}</div>
         <div>
+          <button class="edit-btn" onclick="openEditModal('${b.date}','${b.start}','${b.total}','${b.name}')">✏️ Επεξεργασία</button>
           <button class="cancel-btn" onclick="cancelBooking('${b.date}','${b.start}','${b.name}')">Ακύρωση</button>
         </div>
       </div>`).join('');
@@ -280,6 +305,56 @@
         alert('Σφάλμα κατά την ακύρωση.');
       }
     }catch(e){ alert('Σφάλμα σύνδεσης.'); }
+  }
+</script>
+<!-- Edit Total Modal -->
+<div class="edit-overlay" id="edit-overlay">
+  <div class="edit-modal">
+    <h3>Επεξεργασία</h3>
+    <div class="edit-sub" id="edit-subtitle"></div>
+    <label>Νέο σύνολο (€)</label>
+    <input type="number" id="edit-total-input" min="0" step="1">
+    <div class="edit-actions">
+      <button class="save-btn" onclick="saveEditTotal()">Αποθήκευση</button>
+      <button class="cancel-edit-btn" onclick="closeEditModal()">Ακύρωση</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let editingKey = null;
+
+  function openEditModal(date, start, currentTotal, name){
+    editingKey = date + '|' + start;
+    document.getElementById('edit-subtitle').textContent = name + ' · ' + start;
+    document.getElementById('edit-total-input').value = currentTotal.replace('€','');
+    document.getElementById('edit-overlay').classList.add('show');
+  }
+
+  function closeEditModal(){
+    document.getElementById('edit-overlay').classList.remove('show');
+    editingKey = null;
+  }
+
+  async function saveEditTotal(){
+    if(!editingKey) return;
+    const [date, start] = editingKey.split('|');
+    const timeKey = start.replace(':','');
+    const newTotal = '€' + document.getElementById('edit-total-input').value;
+
+    try{
+      // fetch current booking data
+      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json`);
+      const data = await res.json() || {};
+      data.total = newTotal;
+      await fetch(`${FB}/bookings/${date}/${timeKey}.json`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      closeEditModal();
+      loadBookings();
+    }catch(e){ alert('Σφάλμα αποθήκευσης.'); }
   }
 </script>
 </body>

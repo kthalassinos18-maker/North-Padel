@@ -94,6 +94,7 @@
   .booking-item .b-name{font-weight:600; color:var(--line);}
   .booking-item .b-phone{font-size:13px; color:rgba(244,241,230,0.55); margin-top:2px;}
   .booking-item .b-extras{font-size:12px; color:rgba(244,241,230,0.5); margin-top:2px;}
+  .booking-item .b-note{font-size:12px; color:var(--ball); margin-top:4px; font-style:italic;}
   .booking-item .b-total{font-family:'Anton',sans-serif; font-size:24px; color:var(--ball); white-space:nowrap;}
   .cancel-btn{
     background:rgba(199,91,57,0.15); color:var(--clay); border:1px solid rgba(199,91,57,0.35);
@@ -101,6 +102,12 @@
     white-space:nowrap;
   }
   .cancel-btn:hover{background:rgba(199,91,57,0.25);}
+  .edit-btn{
+    background:rgba(215,243,75,0.12); color:var(--ball); border:1px solid rgba(215,243,75,0.35);
+    font-size:12px; padding:7px 12px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+    white-space:nowrap; margin-bottom:6px;
+  }
+  .edit-btn:hover{background:rgba(215,243,75,0.22);}
   .empty-state{font-family:'Space Mono',monospace; font-size:13px; color:rgba(244,241,230,0.35); padding:24px 0; font-style:italic;}
   .loading{font-family:'Space Mono',monospace; font-size:12px; color:rgba(244,241,230,0.4); padding:16px 0; animation:pulse 1.2s infinite;}
   @keyframes pulse{0%,100%{opacity:0.4;} 50%{opacity:1;}}
@@ -220,6 +227,7 @@
           rackets: typeof val==='object' ? val.rackets||0   : 0,
           balls:   typeof val==='object' ? val.balls||false : false,
           total:   typeof val==='object' ? val.total||'€44' : '€44',
+          note:    typeof val==='object' ? val.note||''     : '',
         });
       });
     });
@@ -256,6 +264,7 @@
         <div>
           <div class="b-name">${b.name}</div>
           <div class="b-phone">${b.phone}</div>
+          ${b.note ? `<div class="b-note">📝 ${b.note}</div>` : ''}
         </div>
         <div>
           ${b.rackets>0?`<div class="b-extras">🎾 ${b.rackets} ρακέτες</div>`:''}
@@ -263,10 +272,58 @@
           ${!b.rackets&&!b.balls?'<div class="b-extras">—</div>':''}
         </div>
         <div class="b-total">${b.total}</div>
-        <div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+          <button class="edit-btn" onclick="editName('${b.date}','${b.start}','${esc(b.name)}')">Όνομα</button>
+          <button class="edit-btn" onclick="editPrice('${b.date}','${b.start}','${b.total}')">Τιμή</button>
+          <button class="edit-btn" onclick="editNote('${b.date}','${b.start}','${esc(b.note)}')">Σημείωση</button>
           <button class="cancel-btn" onclick="cancelBooking('${b.date}','${b.start}','${b.name}')">Ακύρωση</button>
         </div>
       </div>`).join('');
+  }
+
+  function esc(s){
+    return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');
+  }
+
+  async function patchBooking(date, start, patch, errPrefix){
+    const timeKey = start.replace(':','');
+    try{
+      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(patch)
+      });
+      if(res.ok){
+        loadBookings();
+      } else {
+        const errText = await res.text().catch(()=>res.statusText);
+        alert(`${errPrefix} (${res.status}): ${errText}`);
+      }
+    }catch(e){ alert('Σφάλμα σύνδεσης: ' + e.message); }
+  }
+
+  async function editName(date, start, currentName){
+    const input = prompt(`Νέο όνομα για την κράτηση:\n${formatDate(date)} · ${start}`, currentName === '—' ? '' : currentName);
+    if(input === null) return;
+    const trimmed = input.trim();
+    if(!trimmed){ alert('Το όνομα δεν μπορεί να είναι κενό.'); return; }
+    patchBooking(date, start, {name: trimmed}, 'Σφάλμα κατά την ενημέρωση ονόματος');
+  }
+
+  async function editNote(date, start, currentNote){
+    const input = prompt(`Σημείωση για την κράτηση:\n${formatDate(date)} · ${start}\n(άφησέ το κενό για να τη σβήσεις)`, currentNote);
+    if(input === null) return;
+    patchBooking(date, start, {note: input.trim()}, 'Σφάλμα κατά την ενημέρωση σημείωσης');
+  }
+
+  async function editPrice(date, start, currentTotal){
+    const currentNum = (currentTotal || '').replace('€','').trim();
+    const input = prompt(`Νέα τιμή για την κράτηση (€):\n${formatDate(date)} · ${start}`, currentNum);
+    if(input === null) return;
+    const num = parseFloat(input.trim().replace(',', '.'));
+    if(isNaN(num) || num < 0){ alert('Μη έγκυρη τιμή.'); return; }
+    const newTotal = '€' + (Number.isInteger(num) ? num : num.toFixed(2));
+    patchBooking(date, start, {total: newTotal}, 'Σφάλμα κατά την ενημέρωση τιμής');
   }
 
   async function cancelBooking(date, start, name){
@@ -277,9 +334,10 @@
       if(res.ok){
         loadBookings();
       } else {
-        alert('Σφάλμα κατά την ακύρωση.');
+        const errText = await res.text().catch(()=>res.statusText);
+        alert(`Σφάλμα κατά την ακύρωση (${res.status}): ${errText}`);
       }
-    }catch(e){ alert('Σφάλμα σύνδεσης.'); }
+    }catch(e){ alert('Σφάλμα σύνδεσης: ' + e.message); }
   }
 </script>
 </body>

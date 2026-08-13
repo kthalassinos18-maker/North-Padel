@@ -24,11 +24,11 @@
   }
   .login-box .logo{font-family:'Anton',sans-serif; font-size:28px; color:var(--line); text-transform:uppercase;}
   .login-box .sub{font-family:'Space Mono',monospace; font-size:11px; color:var(--ball); letter-spacing:0.12em; margin-top:4px; margin-bottom:32px;}
-  .login-box input[type="password"]{
+  .login-box input[type="password"], .login-box input[type="email"]{
     width:100%; padding:14px; background:var(--court-dark); border:1px solid rgba(244,241,230,0.25);
     color:var(--line); border-radius:2px; font-family:'Inter',sans-serif; font-size:15px; margin-bottom:10px;
   }
-  .login-box input[type="password"]::placeholder{color:rgba(244,241,230,0.35);}
+  .login-box input[type="password"]::placeholder, .login-box input[type="email"]::placeholder{color:rgba(244,241,230,0.35);}
   .btn-primary{
     background:var(--ball); color:var(--court-dark); border:none; font-weight:700;
     font-size:15px; padding:14px 28px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
@@ -94,6 +94,7 @@
   .booking-item .b-name{font-weight:600; color:var(--line);}
   .booking-item .b-phone{font-size:13px; color:rgba(244,241,230,0.55); margin-top:2px;}
   .booking-item .b-extras{font-size:12px; color:rgba(244,241,230,0.5); margin-top:2px;}
+  .booking-item .b-note{font-size:12px; color:var(--ball); margin-top:4px; font-style:italic;}
   .booking-item .b-total{font-family:'Anton',sans-serif; font-size:24px; color:var(--ball); white-space:nowrap;}
   .cancel-btn{
     background:rgba(199,91,57,0.15); color:var(--clay); border:1px solid rgba(199,91,57,0.35);
@@ -102,29 +103,11 @@
   }
   .cancel-btn:hover{background:rgba(199,91,57,0.25);}
   .edit-btn{
-    background:rgba(215,243,75,0.1); color:var(--ball); border:1px solid rgba(215,243,75,0.3);
+    background:rgba(215,243,75,0.12); color:var(--ball); border:1px solid rgba(215,243,75,0.35);
     font-size:12px; padding:7px 12px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
-    white-space:nowrap;
+    white-space:nowrap; margin-bottom:6px;
   }
-  .edit-btn:hover{background:rgba(215,243,75,0.2);}
-
-  /* Edit modal */
-  .edit-overlay{
-    position:fixed; inset:0; background:rgba(6,27,33,0.85); z-index:500;
-    display:none; align-items:center; justify-content:center; padding:20px;
-  }
-  .edit-overlay.show{ display:flex; }
-  .edit-modal{
-    background:var(--court); border:1px solid rgba(244,241,230,0.2); border-radius:6px;
-    padding:32px; max-width:380px; width:100%;
-  }
-  .edit-modal h3{ font-family:'Anton',sans-serif; font-size:22px; color:var(--line); margin-bottom:6px; text-transform:uppercase; }
-  .edit-modal .edit-sub{ font-family:'Space Mono',monospace; font-size:12px; color:var(--ball); margin-bottom:20px; }
-  .edit-modal label{ font-family:'Space Mono',monospace; font-size:11px; color:rgba(244,241,230,0.6); letter-spacing:0.08em; text-transform:uppercase; display:block; margin-bottom:6px; }
-  .edit-modal input{ width:100%; padding:12px; background:var(--court-dark); border:1px solid rgba(244,241,230,0.25); color:var(--line); border-radius:2px; font-family:'Anton',sans-serif; font-size:24px; margin-bottom:16px; box-sizing:border-box; }
-  .edit-modal .edit-actions{ display:flex; gap:10px; }
-  .edit-modal .save-btn{ flex:1; background:var(--ball); color:var(--court-dark); border:none; font-weight:700; font-size:14px; padding:12px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif; }
-  .edit-modal .cancel-edit-btn{ background:transparent; color:rgba(244,241,230,0.5); border:1px solid rgba(244,241,230,0.2); font-size:14px; padding:12px 16px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .edit-btn:hover{background:rgba(215,243,75,0.22);}
   .empty-state{font-family:'Space Mono',monospace; font-size:13px; color:rgba(244,241,230,0.35); padding:24px 0; font-style:italic;}
   .loading{font-family:'Space Mono',monospace; font-size:12px; color:rgba(244,241,230,0.4); padding:16px 0; animation:pulse 1.2s infinite;}
   @keyframes pulse{0%,100%{opacity:0.4;} 50%{opacity:1;}}
@@ -137,9 +120,10 @@
   <div class="login-box">
     <div class="logo">North Padel</div>
     <div class="sub">PITLANE · ΔΙΑΧΕΙΡΙΣΗ</div>
+    <input type="email" id="email-input" placeholder="Email" autocomplete="username">
     <input type="password" id="pass-input" placeholder="Κωδικός πρόσβασης" autocomplete="current-password">
     <button class="btn-primary" onclick="doLogin()">Είσοδος</button>
-    <div class="error-msg" id="error-msg">Λάθος κωδικός</div>
+    <div class="error-msg" id="error-msg">Λάθος στοιχεία σύνδεσης</div>
   </div>
 </div>
 
@@ -169,16 +153,18 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script>
-  const PASS_HASH = '5d2453662bbaf11a89d31ce97cf94e63b923c3453f09284ebc0f026d0872d719';
+  const firebaseConfig = {
+    apiKey: "AIzaSyAnn6RtsAqfJxeWesN3WF1jVv_egCDb21k",
+    authDomain: "north-padel-18763.firebaseapp.com",
+    databaseURL: "https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "north-padel-18763",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const FB = firebaseConfig.databaseURL;
 
-  async function hashPassword(pass){
-    const encoder = new TextEncoder();
-    const data = encoder.encode(pass);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-  const FB   = 'https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app';
 
   const morningSlots = [
     {start:'09:00',end:'10:30'},{start:'10:30',end:'12:00'},{start:'12:00',end:'13:30'},
@@ -199,24 +185,41 @@
 
   // ---- auth ----
   document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  document.getElementById('email-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
   async function doLogin(){
-    const inputHash = await hashPassword(document.getElementById('pass-input').value);
-    if(inputHash === PASS_HASH){
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display    = 'block';
-      document.getElementById('date-filter').value = toDateStr(new Date());
-      loadBookings();
-    } else {
+    const email = document.getElementById('email-input').value.trim();
+    const pass  = document.getElementById('pass-input').value;
+    document.getElementById('error-msg').style.display = 'none';
+    try{
+      await firebase.auth().signInWithEmailAndPassword(email, pass);
+      // onAuthStateChanged handles showing the dashboard
+    }catch(err){
+      document.getElementById('error-msg').textContent = 'Λάθος στοιχεία σύνδεσης';
       document.getElementById('error-msg').style.display = 'block';
     }
   }
 
   function doLogout(){
-    document.getElementById('dashboard').style.display    = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('pass-input').value = '';
-    document.getElementById('error-msg').style.display = 'none';
+    firebase.auth().signOut();
+  }
+
+  firebase.auth().onAuthStateChanged(user => {
+    if(user){
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display    = 'block';
+      document.getElementById('date-filter').value = toDateStr(new Date());
+      loadBookings();
+    } else {
+      document.getElementById('dashboard').style.display    = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('pass-input').value = '';
+    }
+  });
+
+  async function getIdToken(){
+    const user = firebase.auth().currentUser;
+    return user ? await user.getIdToken() : null;
   }
 
   // ---- data ----
@@ -244,6 +247,7 @@
           rackets: typeof val==='object' ? val.rackets||0   : 0,
           balls:   typeof val==='object' ? val.balls||false : false,
           total:   typeof val==='object' ? val.total||'€44' : '€44',
+          note:    typeof val==='object' ? val.note||''     : '',
         });
       });
     });
@@ -280,6 +284,7 @@
         <div>
           <div class="b-name">${b.name}</div>
           <div class="b-phone">${b.phone}</div>
+          ${b.note ? `<div class="b-note">📝 ${b.note}</div>` : ''}
         </div>
         <div>
           ${b.rackets>0?`<div class="b-extras">🎾 ${b.rackets} ρακέτες</div>`:''}
@@ -287,74 +292,74 @@
           ${!b.rackets&&!b.balls?'<div class="b-extras">—</div>':''}
         </div>
         <div class="b-total">${b.total}</div>
-        <div>
-          <button class="edit-btn" onclick="openEditModal('${b.date}','${b.start}','${b.total}','${b.name}')">✏️ Επεξεργασία</button>
+        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+          <button class="edit-btn" onclick="editName('${b.date}','${b.start}','${esc(b.name)}')">Όνομα</button>
+          <button class="edit-btn" onclick="editPrice('${b.date}','${b.start}','${b.total}')">Τιμή</button>
+          <button class="edit-btn" onclick="editNote('${b.date}','${b.start}','${esc(b.note)}')">Σημείωση</button>
           <button class="cancel-btn" onclick="cancelBooking('${b.date}','${b.start}','${b.name}')">Ακύρωση</button>
         </div>
       </div>`).join('');
+  }
+
+  function esc(s){
+    return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');
+  }
+
+  async function patchBooking(date, start, patch, errPrefix){
+    const timeKey = start.replace(':','');
+    try{
+      const token = await getIdToken();
+      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json?auth=${token}`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(patch)
+      });
+      if(res.ok){
+        loadBookings();
+      } else {
+        const errText = await res.text().catch(()=>res.statusText);
+        alert(`${errPrefix} (${res.status}): ${errText}`);
+      }
+    }catch(e){ alert('Σφάλμα σύνδεσης: ' + e.message); }
+  }
+
+  async function editName(date, start, currentName){
+    const input = prompt(`Νέο όνομα για την κράτηση:\n${formatDate(date)} · ${start}`, currentName === '—' ? '' : currentName);
+    if(input === null) return;
+    const trimmed = input.trim();
+    if(!trimmed){ alert('Το όνομα δεν μπορεί να είναι κενό.'); return; }
+    patchBooking(date, start, {name: trimmed}, 'Σφάλμα κατά την ενημέρωση ονόματος');
+  }
+
+  async function editNote(date, start, currentNote){
+    const input = prompt(`Σημείωση για την κράτηση:\n${formatDate(date)} · ${start}\n(άφησέ το κενό για να τη σβήσεις)`, currentNote);
+    if(input === null) return;
+    patchBooking(date, start, {note: input.trim()}, 'Σφάλμα κατά την ενημέρωση σημείωσης');
+  }
+
+  async function editPrice(date, start, currentTotal){
+    const currentNum = (currentTotal || '').replace('€','').trim();
+    const input = prompt(`Νέα τιμή για την κράτηση (€):\n${formatDate(date)} · ${start}`, currentNum);
+    if(input === null) return;
+    const num = parseFloat(input.trim().replace(',', '.'));
+    if(isNaN(num) || num < 0){ alert('Μη έγκυρη τιμή.'); return; }
+    const newTotal = '€' + (Number.isInteger(num) ? num : num.toFixed(2));
+    patchBooking(date, start, {total: newTotal}, 'Σφάλμα κατά την ενημέρωση τιμής');
   }
 
   async function cancelBooking(date, start, name){
     if(!confirm(`Ακύρωση κράτησης;\n${formatDate(date)} · ${start}\n${name}`)) return;
     const timeKey = start.replace(':','');
     try{
-      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json`, {method:'DELETE'});
+      const token = await getIdToken();
+      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json?auth=${token}`, {method:'DELETE'});
       if(res.ok){
         loadBookings();
       } else {
-        alert('Σφάλμα κατά την ακύρωση.');
+        const errText = await res.text().catch(()=>res.statusText);
+        alert(`Σφάλμα κατά την ακύρωση (${res.status}): ${errText}`);
       }
-    }catch(e){ alert('Σφάλμα σύνδεσης.'); }
-  }
-</script>
-<!-- Edit Total Modal -->
-<div class="edit-overlay" id="edit-overlay">
-  <div class="edit-modal">
-    <h3>Επεξεργασία</h3>
-    <div class="edit-sub" id="edit-subtitle"></div>
-    <label>Νέο σύνολο (€)</label>
-    <input type="number" id="edit-total-input" min="0" step="1">
-    <div class="edit-actions">
-      <button class="save-btn" onclick="saveEditTotal()">Αποθήκευση</button>
-      <button class="cancel-edit-btn" onclick="closeEditModal()">Ακύρωση</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  let editingKey = null;
-
-  function openEditModal(date, start, currentTotal, name){
-    editingKey = date + '|' + start;
-    document.getElementById('edit-subtitle').textContent = name + ' · ' + start;
-    document.getElementById('edit-total-input').value = currentTotal.replace('€','');
-    document.getElementById('edit-overlay').classList.add('show');
-  }
-
-  function closeEditModal(){
-    document.getElementById('edit-overlay').classList.remove('show');
-    editingKey = null;
-  }
-
-  async function saveEditTotal(){
-    if(!editingKey) return;
-    const [date, start] = editingKey.split('|');
-    const timeKey = start.replace(':','');
-    const newTotal = '€' + document.getElementById('edit-total-input').value;
-
-    try{
-      // fetch current booking data
-      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json`);
-      const data = await res.json() || {};
-      data.total = newTotal;
-      await fetch(`${FB}/bookings/${date}/${timeKey}.json`, {
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      closeEditModal();
-      loadBookings();
-    }catch(e){ alert('Σφάλμα αποθήκευσης.'); }
+    }catch(e){ alert('Σφάλμα σύνδεσης: ' + e.message); }
   }
 </script>
 </body>

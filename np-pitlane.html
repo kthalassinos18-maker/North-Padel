@@ -229,9 +229,16 @@
 
     let data = {};
     try{
-      const res = await fetch(`${FB}/bookings.json`);
-      if(res.ok) data = await res.json() || {};
-    }catch(e){}
+      const token = await getIdToken();
+      if(!token) throw new Error('Authentication required');
+      const res = await fetch(`${FB}/bookings.json?auth=${encodeURIComponent(token)}`);
+      if(!res.ok) throw new Error(`Firebase read failed (${res.status})`);
+      data = await res.json() || {};
+    }catch(e){
+      console.error('Booking load failed:', e);
+      list.innerHTML = '<div class="empty-state">Δεν ήταν δυνατή η φόρτωση. Δοκιμάστε ξανά.</div>';
+      return;
+    }
 
     let bookings = [];
     Object.entries(data).forEach(([date, slots]) => {

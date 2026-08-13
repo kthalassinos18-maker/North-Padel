@@ -1,0 +1,14 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "bookings": {
+      ".read": "auth != null && auth.uid === 'REPLACE_WITH_ADMIN_UID'",
+      "$date": {
+        "$slot": {
+          ".write": "auth != null && auth.uid === 'REPLACE_WITH_ADMIN_UID'"
+        }
+      }
+    }
+  }
+}

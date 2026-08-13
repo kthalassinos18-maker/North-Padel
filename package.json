@@ -1,0 +1,10 @@
+{
+  "name": "north-padel",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

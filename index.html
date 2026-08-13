@@ -1016,6 +1016,7 @@
 
   // allBookings: { "YYYY-MM-DD|HH:MM": true }
   let allBookings = {};
+  let availabilityUnavailable = false;
   const myBookings = [];
   let selectedKey  = null;
 
@@ -1032,45 +1033,53 @@
   async function loadMonthBookings(year, month){
     const prefix = `${year}-${pad(month+1)}`;
     try{
-      const res = await fetch(`${FB_URL}/bookings.json?orderBy="$key"&startAt="${prefix}-01"&endAt="${prefix}-31"`);
-      if(!res.ok) return {};
-      const data = await res.json();
-      if(!data) return {};
-      // data = { "2026-07-05": { "0800": true }, ... }
-      const result = {};
-      Object.entries(data).forEach(([date, slots]) => {
-        if(!slots) return;
-        Object.keys(slots).forEach(t => {
-          result[date + '|' + t.slice(0,2) + ':' + t.slice(2,4)] = true;
-        });
+      const res = await fetch(`/api/availability?month=${encodeURIComponent(prefix)}`, {
+        headers: {'Accept':'application/json'},
+        cache: 'no-store'
       });
+      if(!res.ok) throw new Error(`Availability failed (${res.status})`);
+      const data = await res.json();
+      const result = {};
+      (data.slots || []).forEach(key => { result[key] = true; });
+      availabilityUnavailable = false;
       return result;
-    }catch(e){ return {}; }
+    }catch(e){
+      console.error('Availability lookup failed:', e);
+      availabilityUnavailable = true;
+      return {};
+    }
   }
 
   async function saveBookingToFirebase(slotKey, bookingData){
-    const [date, time] = slotKey.split('|');
-    const timeKey = time.replace(':','');
-    const res = await fetch(`${FB_URL}/bookings/${date}/${timeKey}.json`, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(bookingData)
+    const [date, start] = slotKey.split('|');
+    const res = await fetch('/api/book', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Accept':'application/json'},
+      body: JSON.stringify({...bookingData, date, start})
     });
+    const result = await res.json().catch(() => ({}));
     if(!res.ok){
-      const errText = await res.text().catch(()=>res.statusText);
-      throw new Error(`Firebase write failed (${res.status}): ${errText}`);
+      const error = new Error(result.error || `Booking failed (${res.status})`);
+      error.code = result.code || '';
+      throw error;
     }
-    return res.json();
+    return result;
   }
 
   async function isSlotTakenFresh(slotKey){
-    const [date, time] = slotKey.split('|');
-    const timeKey = time.replace(':','');
+    const [date] = slotKey.split('|');
     try{
-      const res = await fetch(`${FB_URL}/bookings/${date}/${timeKey}.json`);
-      const val = await res.json();
-      return val === true;
-    }catch(e){ return false; }
+      const res = await fetch(`/api/availability?month=${encodeURIComponent(date.slice(0,7))}`, {
+        headers: {'Accept':'application/json'},
+        cache: 'no-store'
+      });
+      if(!res.ok) throw new Error(`Availability failed (${res.status})`);
+      const data = await res.json();
+      return (data.slots || []).includes(slotKey);
+    }catch(e){
+      console.error('Fresh availability check failed:', e);
+      return false;
+    }
   }
 
   async function loadCurrentMonthBookings(){
@@ -1147,11 +1156,14 @@
     slots.forEach(slot => {
       const key   = selectedDate + '|' + slot.start;
       const taken = !!allBookings[key];
+      const unavailable = availabilityUnavailable;
       const btn   = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'slot' + (taken?' taken':'') + (selectedKey===key?' selected':'');
-      btn.innerHTML = `<span class="t">${slot.start} – ${slot.end}</span><span class="s">${taken?L('slot_taken'):L('slot_available')}</span>`;
-      if(!taken) btn.addEventListener('click', () => selectSlot(key, slot));
+      btn.disabled = taken || unavailable;
+      btn.className = 'slot' + (taken || unavailable ?' taken':'') + (selectedKey===key?' selected':'');
+      const status = unavailable ? (currentLang === 'el' ? 'Προσωρινά μη διαθέσιμο' : 'Temporarily unavailable') : (taken ? L('slot_taken') : L('slot_available'));
+      btn.innerHTML = `<span class="t">${slot.start} – ${slot.end}</span><span class="s">${status}</span>`;
+      if(!taken && !unavailable) btn.addEventListener('click', () => selectSlot(key, slot));
       container.appendChild(btn);
     });
   }
@@ -1259,7 +1271,7 @@
     const comboEl = document.getElementById('combo');
     const combo   = comboEl.options[comboEl.selectedIndex].text;
     const comboVal = parseInt(comboEl.value) || 0;
-    const total   = document.getElementById('total-display').value;
+    let total     = document.getElementById('total-display').value;
     const partySize = document.getElementById('party-size-field').style.display !== 'none'
       ? document.getElementById('party-size').value : '4';
     if(!name || !phone) return;
@@ -1269,10 +1281,21 @@
     if(submitBtn){ submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.textContent; submitBtn.textContent = 'Επεξεργασία...'; }
 
     try{
-      await saveBookingToFirebase(selectedKey, {name, phone, rackets, balls, total, date, start, partySize});
+      const saved = await saveBookingToFirebase(selectedKey, {
+        name, phone, rackets, balls, partySize, combo: comboEl.value
+      });
+      if(saved.total) total = saved.total;
     }catch(err){
       console.error('Booking save failed:', err);
-      alert(L('err_save_failed') + err.message + L('err_save_failed_suffix'));
+      if(err.code === 'SLOT_TAKEN'){
+        allBookings[selectedKey] = true;
+        alert(L('err_slot_taken'));
+        selectedKey = null;
+        document.getElementById('booking-form').classList.add('hidden');
+        renderCalendar(); renderSlots();
+      } else {
+        alert(L('err_save_failed') + err.message + L('err_save_failed_suffix'));
+      }
       if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.origText; }
       return;
     }
@@ -1281,33 +1304,7 @@
     allBookings[selectedKey] = true;
     myBookings.push({date, start, name, phone, rackets, balls, total, partySize});
 
-    // WhatsApp notifications
-    const waMessage =
-      `*Νέα κράτηση North Padel*%0A` +
-      `Ημερομηνία: ${formatDate(date)}%0A` +
-      `Ώρα: ${start}%0A` +
-      `Όνομα: ${name}%0A` +
-      `Τηλέφωνο: ${phone}%0A` +
-      `Τύπος: ${partySize === '2' ? '2 άτομα (€15/€19 ανά άτομο)' : '4 άτομα (κανονικό)'}%0A` +
-      `Ρακέτες: ${partySize === '2' ? 'Δωρεάν (2 άτομα)' : rackets}%0A` +
-      `Premium Padel Balls: ${balls?'Ναι':'Όχι'}%0A` +
-      `Combo: ${partySize === '2' ? '—' : (comboVal > 0 ? combo : 'Χωρίς combo')}%0A` +
-      `Σύνολο: ${total}`;
-    fetch(`https://api.callmebot.com/whatsapp.php?phone=306951784471&text=${waMessage}&apikey=7073800`).catch(()=>{});
-    fetch(`https://api.callmebot.com/whatsapp.php?phone=306984519796&text=${waMessage}&apikey=8270557`).catch(()=>{});
-    fetch(`https://api.callmebot.com/whatsapp.php?phone=306934391978&text=${waMessage}&apikey=6394858`).catch(()=>{});
-
-    // Google Calendar + Teamup via Apps Script (Image trick bypasses CORS)
-    const slotInfo = [...morningSlots,...eveningSlots].find(s=>s.start===start);
-    const gsParams = new URLSearchParams({
-      date, start, end: slotInfo?.end||'',
-      name, phone,
-      rackets: rackets.toString(),
-      balls: balls ? '1' : '0',
-      total
-    });
-    const gsImg = new Image();
-    gsImg.src = 'https://script.google.com/macros/s/AKfycbwRCE9S-odbfBtIfNWr8T-8DC59AGkc6VG8dIFFymoQXTKuz3AqtnaQcR2gck6qqmA/exec?' + gsParams.toString();
+    // Notifications are sent server-side so API keys and customer data are not exposed in the browser.
 
     // show confirmation modal
     document.getElementById('confirm-details').innerHTML = `

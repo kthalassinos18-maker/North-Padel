@@ -32,3 +32,5 @@ jobs:
           git add index.html
           git commit -m 'Security fix #1: separate public availability from private bookings'
           git push origin audit-fixes
+
+# One-time audit-fixes patch; production/main is intentionally untouched.

@@ -1,10 +1,10 @@
 {
   "rules": {
     "bookings": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.uid === 'k8ZsZtu5UNaM9hclsmeASvZYB8i1'",
       "$date": {
         "$slot": {
-          ".write": "!data.exists() || auth != null"
+          ".write": "!data.exists() || (auth != null && auth.uid === 'k8ZsZtu5UNaM9hclsmeASvZYB8i1')"
         }
       }
     }

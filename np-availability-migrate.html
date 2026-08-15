@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="el">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>North Padel · Availability migration</title></head>
+<body style="font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:20px">
+<h1>North Padel — Availability migration</h1>
+<p>One-time admin tool for audit-fixes. It copies existing booking slots to <code>/availability</code> without exposing booking details.</p>
+<input id="email" type="email" placeholder="Admin email" style="display:block;width:100%;padding:10px;margin:8px 0">
+<input id="password" type="password" placeholder="Admin password" style="display:block;width:100%;padding:10px;margin:8px 0">
+<button id="login" style="padding:10px 16px">Login & migrate</button>
+<pre id="out" style="white-space:pre-wrap;background:#f4f4f4;padding:12px;margin-top:16px"></pre>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script>
+const cfg={apiKey:"AIzaSyAnn6RtsAqfJxeWesN3WF1jVv_egCDb21k",authDomain:"north-padel-18763.firebaseapp.com",databaseURL:"https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app",projectId:"north-padel-18763"};
+firebase.initializeApp(cfg);
+const out=document.getElementById('out'); const log=m=>out.textContent+=m+'\n';
+document.getElementById('login').onclick=async()=>{
+  out.textContent='';
+  try{
+    const email=document.getElementById('email').value.trim();
+    const password=document.getElementById('password').value;
+    const cred=await firebase.auth().signInWithEmailAndPassword(email,password);
+    if(cred.user.uid!=='k8ZsZtu5UNaM9hclsmeASvZYB8i1') throw new Error('This account is not the North Padel admin account.');
+    const token=await cred.user.getIdToken();
+    const r=await fetch(cfg.databaseURL+'/bookings.json?auth='+encodeURIComponent(token));
+    if(!r.ok) throw new Error('Could not read bookings: HTTP '+r.status);
+    const bookings=await r.json()||{};
+    const updates={}; let count=0;
+    for(const [date,slots] of Object.entries(bookings)){
+      if(!slots) continue;
+      for(const timeKey of Object.keys(slots)){
+        if(slots[timeKey]){ updates['availability/'+date+'/'+timeKey]=true; count++; }
+      }
+    }
+    if(!count){log('No booking slots found. Nothing to migrate.');return;}
+    const w=await fetch(cfg.databaseURL+'/.json?auth='+encodeURIComponent(token),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(updates)});
+    if(!w.ok) throw new Error('Could not write availability: HTTP '+w.status+' '+await w.text());
+    log('Migration complete. Availability slots written: '+count);
+    log('Booking details were not modified.');
+  }catch(e){log('ERROR: '+e.message);}
+};
+</script>
+</body>
+</html>

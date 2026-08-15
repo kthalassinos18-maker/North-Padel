@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "bookings": {
+      ".read": "auth != null",
+      "$date": {
+        "$slot": {
+          ".write": "!data.exists() || auth != null"
+        }
+      }
+    }
+  }
+}

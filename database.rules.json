@@ -1,11 +1,20 @@
 {
   "rules": {
+    "availability": {
+      ".read": true,
+      "$date": {
+        "$slot": {
+          ".write": "!data.exists() || (auth != null && auth.uid === 'k8ZsZtu5UNaM9hclsmeASvZYB8i1')",
+          ".validate": "newData.isBoolean() && newData.val() === true"
+        }
+      }
+    },
     "bookings": {
       ".read": "auth != null && auth.uid === 'k8ZsZtu5UNaM9hclsmeASvZYB8i1'",
       "$date": {
         "$slot": {
           ".write": "!data.exists() || (auth != null && auth.uid === 'k8ZsZtu5UNaM9hclsmeASvZYB8i1')",
-          ".validate": "newData.hasChildren(['name','phone','rackets','balls','total']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 100 && newData.child('phone').isString() && newData.child('phone').val().length <= 30 && newData.child('rackets').isNumber() && newData.child('rackets').val() >= 0 && newData.child('rackets').val() <= 10 && newData.child('balls').isBoolean() && newData.child('total').isString() && newData.child('total').val().matches('^€[0-9]+(\\.[0-9]{1,2})?$') && (!newData.hasChild('note') || (newData.child('note').isString() && newData.child('note').val().length <= 500))"
+          ".validate": "newData.hasChildren(['name','phone','rackets','balls','total']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 100 && newData.child('phone').isString() && newData.child('phone').val().length <= 30 && newData.child('rackets').isNumber() && newData.child('rackets').val() >= 0 && newData.child('rackets').val() <= 4 && newData.child('balls').isBoolean() && newData.child('total').isString() && newData.child('total').val().length <= 20 && (!newData.hasChild('note') || (newData.child('note').isString() && newData.child('note').val().length <= 500)"
         }
       }
     }

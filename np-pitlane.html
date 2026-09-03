@@ -24,11 +24,11 @@
   }
   .login-box .logo{font-family:'Anton',sans-serif; font-size:28px; color:var(--line); text-transform:uppercase;}
   .login-box .sub{font-family:'Space Mono',monospace; font-size:11px; color:var(--ball); letter-spacing:0.12em; margin-top:4px; margin-bottom:32px;}
-  .login-box input[type="password"], .login-box input[type="email"]{
+  .login-box input[type="password"]{
     width:100%; padding:14px; background:var(--court-dark); border:1px solid rgba(244,241,230,0.25);
     color:var(--line); border-radius:2px; font-family:'Inter',sans-serif; font-size:15px; margin-bottom:10px;
   }
-  .login-box input[type="password"]::placeholder, .login-box input[type="email"]::placeholder{color:rgba(244,241,230,0.35);}
+  .login-box input[type="password"]::placeholder{color:rgba(244,241,230,0.35);}
   .btn-primary{
     background:var(--ball); color:var(--court-dark); border:none; font-weight:700;
     font-size:15px; padding:14px 28px; border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
@@ -112,6 +112,8 @@
   .loading{font-family:'Space Mono',monospace; font-size:12px; color:rgba(244,241,230,0.4); padding:16px 0; animation:pulse 1.2s infinite;}
   @keyframes pulse{0%,100%{opacity:0.4;} 50%{opacity:1;}}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -120,10 +122,9 @@
   <div class="login-box">
     <div class="logo">North Padel</div>
     <div class="sub">PITLANE · ΔΙΑΧΕΙΡΙΣΗ</div>
-    <input type="email" id="email-input" placeholder="Email" autocomplete="username">
     <input type="password" id="pass-input" placeholder="Κωδικός πρόσβασης" autocomplete="current-password">
     <button class="btn-primary" onclick="doLogin()">Είσοδος</button>
-    <div class="error-msg" id="error-msg">Λάθος στοιχεία σύνδεσης</div>
+    <div class="error-msg" id="error-msg">Λάθος κωδικός</div>
   </div>
 </div>
 
@@ -153,18 +154,30 @@
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAnn6RtsAqfJxeWesN3WF1jVv_egCDb21k",
     authDomain: "north-padel-18763.firebaseapp.com",
-    databaseURL: "https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "north-padel-18763",
+    databaseURL: "https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app"
   };
   firebase.initializeApp(firebaseConfig);
-  const FB = firebaseConfig.databaseURL;
+  const auth = firebase.auth();
+  const ADMIN_EMAIL = 'k.thalassinos18@gmail.com';
+  const FB   = 'https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app';
 
+  // adds the current admin's auth token to a Firebase REST URL, required for writes/deletes
+  async function authedUrl(url){
+    if(!auth.currentUser) throw new Error('Δεν είσαι συνδεδεμένος.');
+    const token = await auth.currentUser.getIdToken();
+    return url + (url.includes('?') ? '&' : '?') + 'auth=' + token;
+  }
+
+  // simple HTML-escape for anything coming from customer input before we render it
+  function escapeHtml(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[c]));
+  }
 
   const morningSlots = [
     {start:'09:00',end:'10:30'},{start:'10:30',end:'12:00'},{start:'12:00',end:'13:30'},
@@ -185,26 +198,26 @@
 
   // ---- auth ----
   document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-  document.getElementById('email-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
   async function doLogin(){
-    const email = document.getElementById('email-input').value.trim();
-    const pass  = document.getElementById('pass-input').value;
+    const btn = document.querySelector('.btn-primary');
+    const pass = document.getElementById('pass-input').value;
     document.getElementById('error-msg').style.display = 'none';
+    if(btn){ btn.disabled = true; }
     try{
-      await firebase.auth().signInWithEmailAndPassword(email, pass);
-      // onAuthStateChanged handles showing the dashboard
+      await auth.signInWithEmailAndPassword(ADMIN_EMAIL, pass);
+      // onAuthStateChanged below handles showing the dashboard
     }catch(err){
-      document.getElementById('error-msg').textContent = 'Λάθος στοιχεία σύνδεσης';
       document.getElementById('error-msg').style.display = 'block';
     }
+    if(btn){ btn.disabled = false; }
   }
 
   function doLogout(){
-    firebase.auth().signOut();
+    auth.signOut();
   }
 
-  firebase.auth().onAuthStateChanged(user => {
+  auth.onAuthStateChanged(user => {
     if(user){
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard').style.display    = 'block';
@@ -217,12 +230,9 @@
     }
   });
 
-  async function getIdToken(){
-    const user = firebase.auth().currentUser;
-    return user ? await user.getIdToken() : null;
-  }
-
   // ---- data ----
+  let bookings = []; // kept at module scope so click handlers can look up current values
+
   async function loadBookings(){
     const list = document.getElementById('bookings-list');
     list.innerHTML = '<div class="loading">Φόρτωση...</div>';
@@ -233,7 +243,7 @@
       if(res.ok) data = await res.json() || {};
     }catch(e){}
 
-    let bookings = [];
+    bookings = [];
     Object.entries(data).forEach(([date, slots]) => {
       if(!slots) return;
       Object.entries(slots).forEach(([timeKey, val]) => {
@@ -276,40 +286,54 @@
     }
 
     list.innerHTML = filtered.map(b=>`
-      <div class="booking-item">
+      <div class="booking-item" data-date="${b.date}" data-start="${b.start}">
         <div>
           <div class="b-time">${formatDate(b.date)}</div>
           <div class="b-slot">${b.start} – ${b.end}</div>
         </div>
         <div>
-          <div class="b-name">${b.name}</div>
-          <div class="b-phone">${b.phone}</div>
-          ${b.note ? `<div class="b-note">📝 ${b.note}</div>` : ''}
+          <div class="b-name">${escapeHtml(b.name)}</div>
+          <div class="b-phone">${escapeHtml(b.phone)}</div>
+          ${b.note ? `<div class="b-note">📝 ${escapeHtml(b.note)}</div>` : ''}
         </div>
         <div>
           ${b.rackets>0?`<div class="b-extras">🎾 ${b.rackets} ρακέτες</div>`:''}
           ${b.balls?`<div class="b-extras">🟡 Premium Padel Balls</div>`:''}
           ${!b.rackets&&!b.balls?'<div class="b-extras">—</div>':''}
         </div>
-        <div class="b-total">${b.total}</div>
+        <div class="b-total">${escapeHtml(b.total)}</div>
         <div style="display:flex; flex-direction:column; align-items:flex-end;">
-          <button class="edit-btn" onclick="editName('${b.date}','${b.start}','${esc(b.name)}')">Όνομα</button>
-          <button class="edit-btn" onclick="editPrice('${b.date}','${b.start}','${b.total}')">Τιμή</button>
-          <button class="edit-btn" onclick="editNote('${b.date}','${b.start}','${esc(b.note)}')">Σημείωση</button>
-          <button class="cancel-btn" onclick="cancelBooking('${b.date}','${b.start}','${b.name}')">Ακύρωση</button>
+          <button class="edit-btn" data-action="name">Όνομα</button>
+          <button class="edit-btn" data-action="price">Τιμή</button>
+          <button class="edit-btn" data-action="note">Σημείωση</button>
+          <button class="cancel-btn" data-action="cancel">Ακύρωση</button>
         </div>
       </div>`).join('');
   }
 
-  function esc(s){
-    return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');
-  }
+  // one delegated listener for all booking-item buttons — avoids ever putting
+  // customer-supplied text (name/note) inside HTML attributes or onclick strings
+  document.getElementById('bookings-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const item = btn.closest('.booking-item');
+    const date = item.dataset.date;
+    const start = item.dataset.start;
+    const b = bookings.find(x => x.date === date && x.start === start);
+    if(!b) return;
+    switch(btn.dataset.action){
+      case 'name':  editName(date, start, b.name); break;
+      case 'price': editPrice(date, start, b.total); break;
+      case 'note':  editNote(date, start, b.note); break;
+      case 'cancel': cancelBooking(date, start, b.name); break;
+    }
+  });
 
   async function patchBooking(date, start, patch, errPrefix){
     const timeKey = start.replace(':','');
     try{
-      const token = await getIdToken();
-      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json?auth=${token}`, {
+      const url = await authedUrl(`${FB}/bookings/${date}/${timeKey}.json`);
+      const res = await fetch(url, {
         method: 'PATCH',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify(patch)
@@ -351,8 +375,8 @@
     if(!confirm(`Ακύρωση κράτησης;\n${formatDate(date)} · ${start}\n${name}`)) return;
     const timeKey = start.replace(':','');
     try{
-      const token = await getIdToken();
-      const res = await fetch(`${FB}/bookings/${date}/${timeKey}.json?auth=${token}`, {method:'DELETE'});
+      const url = await authedUrl(`${FB}/bookings/${date}/${timeKey}.json`);
+      const res = await fetch(url, {method:'DELETE'});
       if(res.ok){
         loadBookings();
       } else {

@@ -45,13 +45,13 @@
   }
   .logo{
     color:var(--line); font-family:'Anton',sans-serif; font-size:22px; letter-spacing:0.04em;
-    display:flex; align-items:center; gap:10px;
+    display:flex; align-items:center; gap:10px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .logo-dot{width:10px;height:10px;border-radius:50%;background:var(--ball);}
+  .logo-dot{width:10px;height:10px;border-radius:50%;background:var(--ball); flex-shrink:0;}
   nav a.cta{
     background:var(--ball); color:var(--court-dark); font-weight:700; font-size:14px;
     padding:10px 20px; border-radius:2px; text-decoration:none;
-    font-family:'Inter',sans-serif; letter-spacing:0.02em;
+    font-family:'Inter',sans-serif; letter-spacing:0.02em; flex-shrink:0;
   }
 
 
@@ -182,10 +182,10 @@
 
   /* ===== CALENDAR ===== */
   .calendar-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-  .cal-month-label{font-family:'Anton',sans-serif; font-size:18px; color:var(--line); text-transform:uppercase;}
+  .cal-month-label{font-family:'Anton',sans-serif; font-size:18px; color:var(--line); text-transform:uppercase; flex:1; text-align:center; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .cal-nav{
     background:rgba(244,241,230,0.08); border:1px solid rgba(244,241,230,0.2); color:var(--line);
-    width:30px; height:30px; border-radius:2px; cursor:pointer; font-size:16px; line-height:1;
+    width:30px; height:30px; border-radius:2px; cursor:pointer; font-size:16px; line-height:1; flex-shrink:0;
   }
   .cal-nav:hover{background:rgba(244,241,230,0.16);}
   .cal-weekdays{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px;}
@@ -318,6 +318,7 @@
   @media (max-width:860px){
     /* Nav */
     nav{ padding:16px 20px; }
+    .logo{ font-size:17px; }
     nav a.cta{ padding:10px 16px; font-size:13px; }
 
     /* Hero */
@@ -350,6 +351,7 @@
     .cal-weekdays span{ font-size:12px; }
     .cal-legend{ font-size:11px; gap:10px; }
     .cal-nav{ width:40px; height:40px; font-size:18px; }
+    .cal-month-label{ font-size:15px; }
 
     /* Slots */
     .slots-grid{ grid-template-columns:1fr 1fr; gap:10px; }
@@ -545,6 +547,16 @@
             <input type="tel" id="phone" placeholder="+30 ...">
           </div>
           <div class="field full">
+            <label for="email" data-i18n="lbl_email">Email (προαιρετικό)</label>
+            <input type="email" id="email" placeholder="email@example.com" data-i18n-placeholder="ph_email">
+          </div>
+          <div class="field full" style="margin-top:-8px;">
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; color:rgba(244,241,230,0.7); text-transform:none; letter-spacing:0;">
+              <input type="checkbox" id="marketing-optin" style="width:18px; height:18px; margin-top:2px; flex-shrink:0; cursor:pointer;">
+              <span data-i18n="marketing_optin_text">Θέλω να λαμβάνω ενημερώσεις για τουρνουά, εκδηλώσεις και προσφορές του North Padel (προαιρετικό — μπορείς να διαγραφείς όποτε θες).</span>
+            </label>
+          </div>
+          <div class="field full">
             <label data-i18n="lbl_players">Παίκτες</label>
             <input type="text" value="Απαιτούνται 4 παίκτες ανά κράτηση" readonly id="players-note-input" data-i18n-value="val_players_note">
           </div>
@@ -648,11 +660,11 @@
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">2. Ποια δεδομένα συλλέγουμε</div>
-        <p>Κατά την κράτηση συλλέγουμε: ονοματεπώνυμο και αριθμό τηλεφώνου. Δεν συλλέγουμε email, διεύθυνση ή οποιαδήποτε άλλα προσωπικά δεδομένα.</p>
+        <p>Κατά την κράτηση συλλέγουμε: ονοματεπώνυμο και αριθμό τηλεφώνου. Προαιρετικά, αν το επιλέξεις, συλλέγουμε και email — μόνο αν συμπληρώσεις το πεδίο email και τσεκάρεις το κουτάκι εγγραφής για ενημερώσεις.</p>
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">3. Σκοπός επεξεργασίας</div>
-        <p>Τα δεδομένα χρησιμοποιούνται αποκλειστικά για την επιβεβαίωση και διαχείριση της κράτησής σας στο γήπεδο. Δεν χρησιμοποιούνται για marketing ή οποιοδήποτε άλλο σκοπό.</p>
+        <p>Το όνομα και το τηλέφωνο χρησιμοποιούνται αποκλειστικά για την επιβεβαίωση και διαχείριση της κράτησής σας στο γήπεδο. Αν επιλέξεις να εγγραφείς για ενημερώσεις, το email χρησιμοποιείται για να σου στέλνουμε νέα για τουρνουά, εκδηλώσεις και προσφορές. Μπορείς να διαγραφείς από αυτή τη λίστα όποτε θες, επικοινωνώντας μαζί μας.</p>
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">4. Αποθήκευση δεδομένων</div>
@@ -814,6 +826,9 @@
     lbl_name: {el:'Όνομα', en:'Name'},
     ph_name: {el:'Το όνομά σου', en:'Your name'},
     lbl_phone: {el:'Τηλέφωνο', en:'Phone'},
+    lbl_email: {el:'Email (προαιρετικό)', en:'Email (optional)'},
+    ph_email: {el:'Το email σου', en:'Your email'},
+    marketing_optin_text: {el:'Θέλω να λαμβάνω ενημερώσεις για τουρνουά, εκδηλώσεις και προσφορές του North Padel (προαιρετικό — μπορείς να διαγραφείς όποτε θες).', en:'I want to receive updates about North Padel tournaments, events and offers (optional — you can unsubscribe any time).'},
     lbl_players: {el:'Παίκτες', en:'Players'},
     val_players_note: {el:'Απαιτούνται 4 παίκτες ανά κράτηση', en:'4 players are required per booking'},
     val_players_note_2: {el:'Κράτηση για 2 παίκτες', en:'Booking for 2 players'},
@@ -877,11 +892,11 @@
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">2. Ποια δεδομένα συλλέγουμε</div>
-        <p>Κατά την κράτηση συλλέγουμε: ονοματεπώνυμο και αριθμό τηλεφώνου. Δεν συλλέγουμε email, διεύθυνση ή οποιαδήποτε άλλα προσωπικά δεδομένα.</p>
+        <p>Κατά την κράτηση συλλέγουμε: ονοματεπώνυμο και αριθμό τηλεφώνου. Προαιρετικά, αν το επιλέξεις, συλλέγουμε και email — μόνο αν συμπληρώσεις το πεδίο email και τσεκάρεις το κουτάκι εγγραφής για ενημερώσεις.</p>
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">3. Σκοπός επεξεργασίας</div>
-        <p>Τα δεδομένα χρησιμοποιούνται αποκλειστικά για την επιβεβαίωση και διαχείριση της κράτησής σας στο γήπεδο. Δεν χρησιμοποιούνται για marketing ή οποιοδήποτε άλλο σκοπό.</p>
+        <p>Το όνομα και το τηλέφωνο χρησιμοποιούνται αποκλειστικά για την επιβεβαίωση και διαχείριση της κράτησής σας στο γήπεδο. Αν επιλέξεις να εγγραφείς για ενημερώσεις, το email χρησιμοποιείται για να σου στέλνουμε νέα για τουρνουά, εκδηλώσεις και προσφορές. Μπορείς να διαγραφείς από αυτή τη λίστα όποτε θες, επικοινωνώντας μαζί μας.</p>
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">4. Αποθήκευση δεδομένων</div>
@@ -910,11 +925,11 @@
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">2. What data we collect</div>
-        <p>When you book, we collect: your full name and phone number. We do not collect email, address, or any other personal data.</p>
+        <p>When you book, we collect: your full name and phone number. Optionally, if you choose to, we also collect your email — only if you fill in the email field and tick the sign-up box for updates.</p>
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">3. Purpose of processing</div>
-        <p>Data is used solely to confirm and manage your court booking. It is not used for marketing or any other purpose.</p>
+        <p>Your name and phone number are used solely to confirm and manage your court booking. If you choose to sign up for updates, your email is used to send you news about tournaments, events and offers. You can unsubscribe from this list at any time by contacting us.</p>
       </div>
       <div>
         <div style="font-weight:700; color:var(--line); margin-bottom:6px;">4. Data storage</div>
@@ -1258,6 +1273,8 @@
 
     const name    = document.getElementById('name').value.trim();
     const phone   = document.getElementById('phone').value.trim();
+    const email   = document.getElementById('email').value.trim();
+    const marketingOptIn = document.getElementById('marketing-optin').checked;
     const rackets = parseInt(document.getElementById('rackets').value) || 0;
     const balls   = document.getElementById('balls').checked;
     const comboEl = document.getElementById('combo');
@@ -1273,7 +1290,7 @@
     if(submitBtn){ submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.textContent; submitBtn.textContent = 'Επεξεργασία...'; }
 
     try{
-      await saveBookingToFirebase(selectedKey, {name, phone, rackets, balls, total, date, start, partySize});
+      await saveBookingToFirebase(selectedKey, {name, phone, email, marketingOptIn, rackets, balls, total, date, start, partySize});
     }catch(err){
       console.error('Booking save failed:', err);
       alert(L('err_save_failed') + err.message + L('err_save_failed_suffix'));

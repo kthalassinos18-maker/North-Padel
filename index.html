@@ -249,7 +249,9 @@
   .auth-panel{
     margin-top:24px; background:rgba(244,241,230,0.04); border:1px solid rgba(244,241,230,0.18); border-radius:4px; padding:20px 24px;
   }
+  .auth-panel.hidden{ display:none; }
   .auth-intro{ font-size:13px; color:rgba(244,241,230,0.65); margin-bottom:12px; }
+  .auth-choice-hint{ font-size:13px; color:var(--clay); font-weight:700; margin-bottom:12px; }
   .auth-buttons{ display:flex; gap:10px; flex-wrap:wrap; }
   .btn-ghost.small{
     padding:8px 16px; font-size:13px; border:1px solid rgba(244,241,230,0.35); background:transparent; color:var(--line);
@@ -261,6 +263,7 @@
   .auth-form .btn-primary.small{ padding:10px 18px; font-size:13px; width:auto; }
   .auth-error{ color:#e05d5d; font-size:12px; min-height:0; }
   .auth-error:empty{ display:none; }
+  .auth-data-notice{ font-size:12.5px; color:var(--ball); background:rgba(206,222,66,0.1); border:1px solid rgba(206,222,66,0.3); border-radius:4px; padding:10px 12px; line-height:1.4; }
   .auth-welcome{ font-size:13px; color:rgba(244,241,230,0.85); }
   .link-btn{
     background:none; border:none; color:var(--ball); text-decoration:underline; cursor:pointer; font-size:13px; font-family:'Inter',sans-serif; padding:0;
@@ -557,9 +560,10 @@
         <h4>Βράδυ</h4>
         <div class="slots-grid" id="evening-slots"></div>
 
-        <div class="auth-panel" id="auth-panel">
+        <div class="auth-panel hidden" id="auth-panel">
           <div id="auth-logged-out">
             <p class="auth-intro" data-i18n="auth_intro">Έχεις λογαριασμό; Συνδέσου για να αποθηκεύσουμε τα στοιχεία σου, ή συνέχισε ως επισκέπτης.</p>
+            <p class="auth-choice-hint" id="auth-choice-hint" data-i18n="auth_choice_hint">Διάλεξε πρώτα μία από τις παρακάτω επιλογές για να συνεχίσεις την κράτηση.</p>
             <div class="auth-buttons">
               <button type="button" id="show-login-btn" class="btn-ghost small" data-i18n="auth_login_btn">Σύνδεση</button>
               <button type="button" id="show-signup-btn" class="btn-ghost small" data-i18n="auth_signup_btn">Δημιουργία λογαριασμού</button>
@@ -582,6 +586,7 @@
             </form>
 
             <form id="signup-form" class="auth-form hidden">
+              <p class="auth-data-notice" data-i18n="auth_data_notice">📋 Τα στοιχεία σου (email) θα χρησιμοποιηθούν αποκλειστικά για να σε ενημερώνουμε για τουρνουά, εκδηλώσεις και προσφορές του North Padel — τίποτα άλλο, και μπορείς να διαγραφείς όποτε θες.</p>
               <div class="field full">
                 <label for="signup-email" data-i18n="lbl_email_acc">Email</label>
                 <input type="email" id="signup-email" autocomplete="email">
@@ -914,6 +919,8 @@
     ph_email: {el:'Το email σου', en:'Your email'},
     marketing_optin_text: {el:'Θέλω να λαμβάνω ενημερώσεις για τουρνουά, εκδηλώσεις και προσφορές του North Padel (προαιρετικό — μπορείς να διαγραφείς όποτε θες).', en:'I want to receive updates about North Padel tournaments, events and offers (optional — you can unsubscribe any time).'},
     auth_intro: {el:'Έχεις λογαριασμό; Συνδέσου για να αποθηκεύσουμε τα στοιχεία σου, ή συνέχισε ως επισκέπτης.', en:"Have an account? Log in so we can save your details, or continue as a guest."},
+    auth_choice_hint: {el:'Διάλεξε πρώτα μία από τις παρακάτω επιλογές για να συνεχίσεις την κράτηση.', en:'Please choose one of the options below to continue with your booking.'},
+    auth_data_notice: {el:'📋 Τα στοιχεία σου (email) θα χρησιμοποιηθούν αποκλειστικά για να σε ενημερώνουμε για τουρνουά, εκδηλώσεις και προσφορές του North Padel — τίποτα άλλο, και μπορείς να διαγραφείς όποτε θες.', en:'📋 Your details (email) will be used solely to notify you about North Padel tournaments, events and offers — nothing else, and you can unsubscribe any time.'},
     auth_login_btn: {el:'Σύνδεση', en:'Log in'},
     auth_signup_btn: {el:'Δημιουργία λογαριασμού', en:'Create account'},
     auth_guest_btn: {el:'Συνέχεια ως επισκέπτης', en:'Continue as guest'},
@@ -1278,13 +1285,29 @@
   // sessions that start before 21:00 qualify for the 2-player rate
   const twoPlayerEligibleTimes = ['09:00','10:30','12:00','13:30','15:00','16:30','18:00','19:30'];
 
+  let pathChosen = false;   // becomes true once the person picks "guest" or logs in
+  let pendingSlot = null;   // {key, slot} waiting for the choice above
+
   function selectSlot(key, slot){
     selectedKey = key;
     renderSlots();
+    document.getElementById('confirm-msg').classList.remove('show');
+
+    if(!pathChosen){
+      pendingSlot = {key, slot};
+      document.getElementById('booking-form').classList.add('hidden');
+      document.getElementById('auth-panel').classList.remove('hidden');
+      document.getElementById('auth-panel').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    revealBookingForm(slot);
+  }
+
+  function revealBookingForm(slot){
     const form = document.getElementById('booking-form');
     form.classList.remove('hidden');
+    document.getElementById('auth-panel').classList.add('hidden');
     document.getElementById('selected-slot-display').value = `${formatDate(selectedDate)} · ${slot.start}–${slot.end}`;
-    document.getElementById('confirm-msg').classList.remove('show');
 
     // 2-player rate only available before 21:00 — reset to 4-player default on every new slot pick
     const partySizeField = document.getElementById('party-size-field');
@@ -1359,8 +1382,11 @@
   }
   document.getElementById('show-login-btn').addEventListener('click', ()=>showAuthForm('login'));
   document.getElementById('show-signup-btn').addEventListener('click', ()=>showAuthForm('signup'));
-  document.getElementById('continue-guest-btn').addEventListener('click', ()=>showAuthForm('guest'));
-  showAuthForm('guest'); // default state: guest, forms collapsed
+  document.getElementById('continue-guest-btn').addEventListener('click', ()=>{
+    showAuthForm('guest');
+    pathChosen = true;
+    if(pendingSlot){ revealBookingForm(pendingSlot.slot); pendingSlot = null; }
+  });
 
   loginForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -1408,10 +1434,15 @@
       guestEmailFields.classList.add('hidden');
       document.getElementById('email').value = user.email;
       document.getElementById('marketing-optin').checked = true;
+      document.getElementById('auth-panel').classList.add('hidden');
+      pathChosen = true;
+      if(pendingSlot){ revealBookingForm(pendingSlot.slot); pendingSlot = null; }
     } else {
       authLoggedOut.classList.remove('hidden');
       authLoggedIn.classList.add('hidden');
       guestEmailFields.classList.remove('hidden');
+      pathChosen = false;
+      document.getElementById('booking-form').classList.add('hidden');
     }
   });
 

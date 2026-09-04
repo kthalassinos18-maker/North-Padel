@@ -244,6 +244,28 @@
   }
   @media (max-width:860px){ .booking-form{ grid-template-columns:1fr; } .booking-form .field.full{ grid-column:1; } }
   .booking-form.hidden{display:none;}
+
+  /* Auth panel */
+  .auth-panel{
+    margin-top:24px; background:rgba(244,241,230,0.04); border:1px solid rgba(244,241,230,0.18); border-radius:4px; padding:20px 24px;
+  }
+  .auth-intro{ font-size:13px; color:rgba(244,241,230,0.65); margin-bottom:12px; }
+  .auth-buttons{ display:flex; gap:10px; flex-wrap:wrap; }
+  .btn-ghost.small{
+    padding:8px 16px; font-size:13px; border:1px solid rgba(244,241,230,0.35); background:transparent; color:var(--line);
+    border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .btn-ghost.small.active{ background:var(--ball); color:var(--court-dark); border-color:var(--ball); font-weight:700; }
+  .auth-form{ display:grid; grid-template-columns:1fr; gap:14px; margin-top:16px; max-width:360px; }
+  .auth-form.hidden{ display:none; }
+  .auth-form .btn-primary.small{ padding:10px 18px; font-size:13px; width:auto; }
+  .auth-error{ color:#e05d5d; font-size:12px; min-height:0; }
+  .auth-error:empty{ display:none; }
+  .auth-welcome{ font-size:13px; color:rgba(244,241,230,0.85); }
+  .link-btn{
+    background:none; border:none; color:var(--ball); text-decoration:underline; cursor:pointer; font-size:13px; font-family:'Inter',sans-serif; padding:0;
+  }
+  #guest-email-fields.hidden{ display:none; }
   .field{display:flex; flex-direction:column; gap:6px;}
   .field.full{grid-column:1 / -1;}
   .field label{font-size:12px; font-family:'Space Mono',monospace; letter-spacing:0.06em; color:rgba(244,241,230,0.7); text-transform:uppercase;}
@@ -374,6 +396,8 @@
     .footer-bottom{ font-size:10px; }
   }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -533,6 +557,57 @@
         <h4>Βράδυ</h4>
         <div class="slots-grid" id="evening-slots"></div>
 
+        <div class="auth-panel" id="auth-panel">
+          <div id="auth-logged-out">
+            <p class="auth-intro" data-i18n="auth_intro">Έχεις λογαριασμό; Συνδέσου για να αποθηκεύσουμε τα στοιχεία σου, ή συνέχισε ως επισκέπτης.</p>
+            <div class="auth-buttons">
+              <button type="button" id="show-login-btn" class="btn-ghost small" data-i18n="auth_login_btn">Σύνδεση</button>
+              <button type="button" id="show-signup-btn" class="btn-ghost small" data-i18n="auth_signup_btn">Δημιουργία λογαριασμού</button>
+              <button type="button" id="continue-guest-btn" class="btn-ghost small active" data-i18n="auth_guest_btn">Συνέχεια ως επισκέπτης</button>
+            </div>
+
+            <form id="login-form" class="auth-form hidden">
+              <div class="field full">
+                <label for="login-email" data-i18n="lbl_email_acc">Email</label>
+                <input type="email" id="login-email" autocomplete="email">
+              </div>
+              <div class="field full">
+                <label for="login-password" data-i18n="lbl_password">Κωδικός</label>
+                <input type="password" id="login-password" autocomplete="current-password">
+              </div>
+              <div class="field full auth-error" id="login-error"></div>
+              <div class="field full">
+                <button type="submit" class="btn-primary small" data-i18n="auth_login_submit">Σύνδεση</button>
+              </div>
+            </form>
+
+            <form id="signup-form" class="auth-form hidden">
+              <div class="field full">
+                <label for="signup-email" data-i18n="lbl_email_acc">Email</label>
+                <input type="email" id="signup-email" autocomplete="email">
+              </div>
+              <div class="field full">
+                <label for="signup-password" data-i18n="lbl_password_new">Κωδικός (τουλάχιστον 6 χαρακτήρες)</label>
+                <input type="password" id="signup-password" autocomplete="new-password">
+              </div>
+              <div class="field full">
+                <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; color:rgba(244,241,230,0.7); text-transform:none; letter-spacing:0;">
+                  <input type="checkbox" id="signup-consent" style="width:18px; height:18px; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                  <span data-i18n="auth_signup_consent">Κατανοώ ότι δημιουργώντας λογαριασμό, το email μου θα χρησιμοποιηθεί αποκλειστικά για ενημερώσεις σχετικά με τουρνουά, εκδηλώσεις και προσφορές του North Padel — και μπορώ να διαγραφώ όποτε θέλω.</span>
+                </label>
+              </div>
+              <div class="field full auth-error" id="signup-error"></div>
+              <div class="field full">
+                <button type="submit" class="btn-primary small" data-i18n="auth_signup_submit">Δημιουργία λογαριασμού</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="auth-logged-in" class="hidden">
+            <p class="auth-welcome"><span data-i18n="auth_welcome">Συνδέθηκες ως</span> <strong id="auth-user-email"></strong> · <button type="button" id="logout-btn" class="link-btn" data-i18n="auth_logout_btn">Αποσύνδεση</button></p>
+          </div>
+        </div>
+
         <form class="booking-form hidden" id="booking-form">
           <div class="field full">
             <label data-i18n="lbl_selected_slot">Επιλεγμένη ώρα</label>
@@ -546,15 +621,17 @@
             <label for="phone" data-i18n="lbl_phone">Τηλέφωνο</label>
             <input type="tel" id="phone" placeholder="+30 ...">
           </div>
-          <div class="field full">
-            <label for="email" data-i18n="lbl_email">Email (προαιρετικό)</label>
-            <input type="email" id="email" placeholder="email@example.com" data-i18n-placeholder="ph_email">
-          </div>
-          <div class="field full" style="margin-top:-8px;">
-            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; color:rgba(244,241,230,0.7); text-transform:none; letter-spacing:0;">
-              <input type="checkbox" id="marketing-optin" style="width:18px; height:18px; margin-top:2px; flex-shrink:0; cursor:pointer;">
-              <span data-i18n="marketing_optin_text">Θέλω να λαμβάνω ενημερώσεις για τουρνουά, εκδηλώσεις και προσφορές του North Padel (προαιρετικό — μπορείς να διαγραφείς όποτε θες).</span>
-            </label>
+          <div id="guest-email-fields">
+            <div class="field full">
+              <label for="email" data-i18n="lbl_email">Email (προαιρετικό)</label>
+              <input type="email" id="email" placeholder="email@example.com" data-i18n-placeholder="ph_email">
+            </div>
+            <div class="field full" style="margin-top:-8px;">
+              <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; color:rgba(244,241,230,0.7); text-transform:none; letter-spacing:0;">
+                <input type="checkbox" id="marketing-optin" style="width:18px; height:18px; margin-top:2px; flex-shrink:0; cursor:pointer;">
+                <span data-i18n="marketing_optin_text">Θέλω να λαμβάνω ενημερώσεις για τουρνουά, εκδηλώσεις και προσφορές του North Padel (προαιρετικό — μπορείς να διαγραφείς όποτε θες).</span>
+              </label>
+            </div>
           </div>
           <div class="field full">
             <label data-i18n="lbl_players">Παίκτες</label>
@@ -775,6 +852,13 @@
 <script>
   const FB_URL = 'https://north-padel-18763-default-rtdb.europe-west1.firebasedatabase.app';
 
+  firebase.initializeApp({
+    apiKey: "AIzaSyAnn6RtsAqfJxeWesN3WF1jVv_egCDb21k",
+    authDomain: "north-padel-18763.firebaseapp.com",
+    databaseURL: FB_URL
+  });
+  let currentUser = null; // set by onAuthStateChanged below
+
   // ---- i18n ----
   let currentLang = localStorage.getItem('npLang') || 'el';
   const translations = {
@@ -829,6 +913,22 @@
     lbl_email: {el:'Email (προαιρετικό)', en:'Email (optional)'},
     ph_email: {el:'Το email σου', en:'Your email'},
     marketing_optin_text: {el:'Θέλω να λαμβάνω ενημερώσεις για τουρνουά, εκδηλώσεις και προσφορές του North Padel (προαιρετικό — μπορείς να διαγραφείς όποτε θες).', en:'I want to receive updates about North Padel tournaments, events and offers (optional — you can unsubscribe any time).'},
+    auth_intro: {el:'Έχεις λογαριασμό; Συνδέσου για να αποθηκεύσουμε τα στοιχεία σου, ή συνέχισε ως επισκέπτης.', en:"Have an account? Log in so we can save your details, or continue as a guest."},
+    auth_login_btn: {el:'Σύνδεση', en:'Log in'},
+    auth_signup_btn: {el:'Δημιουργία λογαριασμού', en:'Create account'},
+    auth_guest_btn: {el:'Συνέχεια ως επισκέπτης', en:'Continue as guest'},
+    lbl_email_acc: {el:'Email', en:'Email'},
+    lbl_password: {el:'Κωδικός', en:'Password'},
+    lbl_password_new: {el:'Κωδικός (τουλάχιστον 6 χαρακτήρες)', en:'Password (at least 6 characters)'},
+    auth_login_submit: {el:'Σύνδεση', en:'Log in'},
+    auth_signup_submit: {el:'Δημιουργία λογαριασμού', en:'Create account'},
+    auth_signup_consent: {el:'Κατανοώ ότι δημιουργώντας λογαριασμό, το email μου θα χρησιμοποιηθεί αποκλειστικά για ενημερώσεις σχετικά με τουρνουά, εκδηλώσεις και προσφορές του North Padel — και μπορώ να διαγραφώ όποτε θέλω.', en:'I understand that by creating an account, my email will be used solely to send updates about North Padel tournaments, events and offers — and I can unsubscribe at any time.'},
+    auth_welcome: {el:'Συνδέθηκες ως', en:'Logged in as'},
+    auth_logout_btn: {el:'Αποσύνδεση', en:'Log out'},
+    auth_err_login: {el:'Λάθος email ή κωδικός. Δοκίμασε ξανά.', en:'Wrong email or password. Please try again.'},
+    auth_err_consent: {el:'Χρειάζεται να αποδεχτείς πρώτα για να δημιουργήσεις λογαριασμό.', en:'You need to agree first to create an account.'},
+    auth_err_password: {el:'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.', en:'Password must be at least 6 characters.'},
+    auth_err_signup: {el:'Δεν έγινε η εγγραφή — ίσως το email χρησιμοποιείται ήδη. Δοκίμασε ξανά ή συνδέσου.', en:"Registration failed — the email may already be in use. Try again or log in."},
     lbl_players: {el:'Παίκτες', en:'Players'},
     val_players_note: {el:'Απαιτούνται 4 παίκτες ανά κράτηση', en:'4 players are required per booking'},
     val_players_note_2: {el:'Κράτηση για 2 παίκτες', en:'Booking for 2 players'},
@@ -1241,6 +1341,79 @@
   document.getElementById('balls').addEventListener('change', updateTotal);
   document.getElementById('combo').addEventListener('change', updateTotal);
   document.getElementById('party-size').addEventListener('change', updateTotal);
+
+  // ---- customer accounts (login / signup / guest) ----
+  const authLoggedOut = document.getElementById('auth-logged-out');
+  const authLoggedIn  = document.getElementById('auth-logged-in');
+  const loginForm     = document.getElementById('login-form');
+  const signupForm    = document.getElementById('signup-form');
+  const guestEmailFields = document.getElementById('guest-email-fields');
+
+  function showAuthForm(which){
+    loginForm.classList.add('hidden');
+    signupForm.classList.add('hidden');
+    document.querySelectorAll('.auth-buttons .btn-ghost').forEach(b=>b.classList.remove('active'));
+    if(which === 'login'){ loginForm.classList.remove('hidden'); document.getElementById('show-login-btn').classList.add('active'); }
+    if(which === 'signup'){ signupForm.classList.remove('hidden'); document.getElementById('show-signup-btn').classList.add('active'); }
+    if(which === 'guest'){ document.getElementById('continue-guest-btn').classList.add('active'); }
+  }
+  document.getElementById('show-login-btn').addEventListener('click', ()=>showAuthForm('login'));
+  document.getElementById('show-signup-btn').addEventListener('click', ()=>showAuthForm('signup'));
+  document.getElementById('continue-guest-btn').addEventListener('click', ()=>showAuthForm('guest'));
+  showAuthForm('guest'); // default state: guest, forms collapsed
+
+  loginForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('login-error'); errEl.textContent = '';
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-password').value;
+    try{
+      await firebase.auth().signInWithEmailAndPassword(email, pass);
+      loginForm.reset();
+    }catch(err){
+      errEl.textContent = L('auth_err_login');
+    }
+  });
+
+  signupForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const errEl = document.getElementById('signup-error'); errEl.textContent = '';
+    const email = document.getElementById('signup-email').value.trim();
+    const pass  = document.getElementById('signup-password').value;
+    const consent = document.getElementById('signup-consent').checked;
+    if(!consent){ errEl.textContent = L('auth_err_consent'); return; }
+    if(pass.length < 6){ errEl.textContent = L('auth_err_password'); return; }
+    try{
+      const cred = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+      const idToken = await cred.user.getIdToken();
+      await fetch(`${FB_URL}/users/${cred.user.uid}.json?auth=${idToken}`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email, marketingOptIn:true, createdAt: Date.now()})
+      });
+      signupForm.reset();
+    }catch(err){
+      errEl.textContent = L('auth_err_signup');
+    }
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', ()=> firebase.auth().signOut());
+
+  firebase.auth().onAuthStateChanged(user=>{
+    currentUser = user;
+    if(user){
+      authLoggedOut.classList.add('hidden');
+      authLoggedIn.classList.remove('hidden');
+      document.getElementById('auth-user-email').textContent = user.email;
+      guestEmailFields.classList.add('hidden');
+      document.getElementById('email').value = user.email;
+      document.getElementById('marketing-optin').checked = true;
+    } else {
+      authLoggedOut.classList.remove('hidden');
+      authLoggedIn.classList.add('hidden');
+      guestEmailFields.classList.remove('hidden');
+    }
+  });
 
   document.getElementById('booking-form').addEventListener('submit', async (e) => {
     e.preventDefault();

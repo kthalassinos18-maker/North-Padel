@@ -265,7 +265,13 @@
   .auth-error:empty{ display:none; }
   .auth-data-notice{ font-size:12.5px; color:var(--ball); background:rgba(206,222,66,0.1); border:1px solid rgba(206,222,66,0.3); border-radius:4px; padding:10px 12px; line-height:1.4; }
   .auth-welcome{ font-size:13px; color:rgba(244,241,230,0.85); }
-  .link-btn{
+  .my-bookings-list{ margin-top:12px; display:grid; gap:8px; max-width:420px; }
+  .my-bookings-list.hidden{ display:none; }
+  .my-booking-item{
+    background:rgba(244,241,230,0.06); border:1px solid rgba(244,241,230,0.15); border-radius:4px;
+    padding:10px 14px; font-size:13px; color:var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .my-bookings-empty, .my-bookings-note{ font-size:12.5px; color:rgba(244,241,230,0.6); margin-top:6px; }  .link-btn{
     background:none; border:none; color:var(--ball); text-decoration:underline; cursor:pointer; font-size:13px; font-family:'Inter',sans-serif; padding:0;
   }
   #guest-email-fields.hidden{ display:none; }
@@ -610,6 +616,8 @@
 
           <div id="auth-logged-in" class="hidden">
             <p class="auth-welcome"><span data-i18n="auth_welcome">Συνδέθηκες ως</span> <strong id="auth-user-email"></strong> · <button type="button" id="logout-btn" class="link-btn" data-i18n="auth_logout_btn">Αποσύνδεση</button></p>
+            <button type="button" id="show-my-bookings-btn" class="link-btn" style="margin-top:8px;" data-i18n="my_bookings_btn">Δες τις μελλοντικές κρατήσεις σου</button>
+            <div id="account-bookings-list" class="my-bookings-list hidden"></div>
           </div>
         </div>
 
@@ -936,6 +944,10 @@
     auth_err_consent: {el:'Χρειάζεται να αποδεχτείς πρώτα για να δημιουργήσεις λογαριασμό.', en:'You need to agree first to create an account.'},
     auth_err_password: {el:'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.', en:'Password must be at least 6 characters.'},
     auth_err_signup: {el:'Δεν έγινε η εγγραφή — ίσως το email χρησιμοποιείται ήδη. Δοκίμασε ξανά ή συνδέσου.', en:"Registration failed — the email may already be in use. Try again or log in."},
+    my_bookings_btn: {el:'Δες τις μελλοντικές κρατήσεις σου', en:'View your upcoming bookings'},
+    loading_text: {el:'Φόρτωση...', en:'Loading...'},
+    my_bookings_empty: {el:'Δεν έχεις μελλοντικές κρατήσεις αυτή τη στιγμή.', en:"You don't have any upcoming bookings right now."},
+    my_bookings_note: {el:'Για ακύρωση, καλέστε μας τηλεφωνικά — δεν γίνεται online.', en:'To cancel, please call us — this cannot be done online.'},
     lbl_players: {el:'Παίκτες', en:'Players'},
     val_players_note: {el:'Απαιτούνται 4 παίκτες ανά κράτηση', en:'4 players are required per booking'},
     val_players_note_2: {el:'Κράτηση για 2 παίκτες', en:'Booking for 2 players'},
@@ -1446,6 +1458,50 @@
     }
   });
 
+  // ---- "my upcoming bookings" (view only, no cancel) ----
+  async function fetchMyUpcomingBookings(uid){
+    const today = new Date();
+    const results = [];
+    // scan this month + next 2 months, which covers any realistic booking horizon
+    for(let i=0;i<3;i++){
+      const y = today.getFullYear();
+      const m = today.getMonth() + i;
+      const d = new Date(y, m, 1);
+      const prefix = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+      try{
+        const res = await fetch(`${FB_URL}/bookings.json?orderBy="$key"&startAt="${prefix}-01"&endAt="${prefix}-31"`);
+        if(!res.ok) continue;
+        const data = await res.json();
+        if(!data) continue;
+        Object.entries(data).forEach(([date, slots]) => {
+          if(!slots) return;
+          Object.entries(slots).forEach(([t, booking]) => {
+            if(booking && typeof booking === 'object' && booking.uid === uid){
+              results.push({date, time: t.slice(0,2)+':'+t.slice(2,4)});
+            }
+          });
+        });
+      }catch(e){ /* skip month on error */ }
+    }
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+    return results.filter(b => b.date >= todayStr).sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+  }
+
+  document.getElementById('show-my-bookings-btn').addEventListener('click', async ()=>{
+    const list = document.getElementById('account-bookings-list');
+    if(!list.classList.contains('hidden')){ list.classList.add('hidden'); return; }
+    list.classList.remove('hidden');
+    list.innerHTML = `<div class="my-bookings-empty">${L('loading_text')}</div>`;
+    const bookings = await fetchMyUpcomingBookings(currentUser.uid);
+    if(bookings.length === 0){
+      list.innerHTML = `<div class="my-bookings-empty">${L('my_bookings_empty')}</div>`;
+      return;
+    }
+    list.innerHTML = bookings.map(b =>
+      `<div class="my-booking-item"><span>${formatDate(b.date)}</span><span>${b.time}</span></div>`
+    ).join('') + `<div class="my-bookings-note">${L('my_bookings_note')}</div>`;
+  });
+
   document.getElementById('booking-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!selectedKey) return;
@@ -1494,7 +1550,7 @@
     if(submitBtn){ submitBtn.disabled = true; submitBtn.dataset.origText = submitBtn.textContent; submitBtn.textContent = 'Επεξεργασία...'; }
 
     try{
-      await saveBookingToFirebase(selectedKey, {name, phone, email, marketingOptIn, rackets, balls, total, date, start, partySize});
+      await saveBookingToFirebase(selectedKey, {name, phone, email, marketingOptIn, rackets, balls, total, date, start, partySize, uid: currentUser ? currentUser.uid : null});
     }catch(err){
       console.error('Booking save failed:', err);
       alert(L('err_save_failed') + err.message + L('err_save_failed_suffix'));

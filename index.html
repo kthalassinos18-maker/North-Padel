@@ -53,6 +53,27 @@
     padding:10px 20px; border-radius:2px; text-decoration:none;
     font-family:'Inter',sans-serif; letter-spacing:0.02em; flex-shrink:0;
   }
+  .nav-right{ display:flex; align-items:center; gap:12px; flex-shrink:0; }
+  .menu-toggle{
+    background:transparent; border:1px solid rgba(244,241,230,0.3); color:var(--line);
+    font-size:18px; padding:6px 12px; border-radius:2px; cursor:pointer; flex-shrink:0;
+  }
+  .nav-dropdown{
+    position:absolute; top:64px; left:20px; background:var(--court); border:1px solid rgba(244,241,230,0.2);
+    border-radius:4px; padding:10px; display:flex; flex-direction:column; gap:2px; z-index:100; min-width:180px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+  }
+  .nav-dropdown.hidden{ display:none; }
+  .nav-dropdown a{
+    color:var(--line); text-decoration:none; padding:10px 12px; border-radius:2px; font-size:14px; font-family:'Inter',sans-serif;
+  }
+  .nav-dropdown a:hover{ background:rgba(244,241,230,0.08); }
+  .nav-account{
+    width:32px; height:32px; border-radius:50%; background:var(--ball); color:var(--court-dark);
+    font-family:'Anton',sans-serif; font-size:14px; display:flex; align-items:center; justify-content:center;
+    border:none; cursor:pointer; flex-shrink:0; padding:0;
+  }
+  .nav-account.hidden{ display:none; }
 
 
   /* ===== COMBOS ===== */
@@ -168,6 +189,42 @@
   .booking{background:var(--court-dark); color:var(--line);}
   .booking .section-head h2{color:var(--line);}
   .booking .section-head .num{color:var(--ball);}
+  .gallery-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:700px; }
+  @media (max-width:860px){ .gallery-grid{ grid-template-columns:repeat(2,1fr); } }
+  .gallery-tile{
+    aspect-ratio:1; background:var(--clay); border-radius:6px; display:flex; align-items:center; justify-content:center;
+    font-size:40px; opacity:0.85;
+  }
+  .gallery-tile:nth-child(even){ background:var(--court); }
+  .gallery-tile.gallery-photo{ padding:0; overflow:hidden; position:relative; }
+  .gallery-tile.gallery-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .gallery-tile.gallery-category{ position:relative; padding:0; overflow:hidden; cursor:pointer; }
+  .gallery-tile.gallery-category img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .gallery-category-label{
+    position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:12px;
+    background:linear-gradient(to top, rgba(0,0,0,0.65), transparent 55%);
+    color:var(--line); font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+  }
+  .gallery-lightbox{
+    position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:500;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .gallery-lightbox.hidden{ display:none; }
+  .gallery-lightbox-content img{ max-width:100%; max-height:85vh; border-radius:6px; display:block; }
+  .gallery-lightbox-close{
+    position:absolute; top:20px; right:20px; background:transparent; border:none; color:#fff;
+    font-size:28px; cursor:pointer; line-height:1;
+  }
+  .gallery-tile.gallery-icon{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+  .gallery-icon-label{ font-size:11px; font-family:'Inter',sans-serif; color:var(--muted); text-align:center; }
+  .gallery-lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); background:rgba(244,241,230,0.12); border:none;
+    color:#fff; font-size:36px; width:52px; height:52px; border-radius:50%; cursor:pointer; line-height:1;
+  }
+  .gallery-lightbox-prev{ left:16px; }
+  .gallery-lightbox-next{ right:16px; }
+  .gallery-lightbox-nav.hidden{ display:none; }
+  .gallery-note{ margin-top:16px; font-size:13px; color:var(--muted); }
 
   .booking-layout{display:grid; grid-template-columns:340px 1fr; gap:40px;}
   @media (max-width: 860px){ .booking-layout{grid-template-columns:1fr; gap:24px;} }
@@ -265,6 +322,26 @@
   .auth-error:empty{ display:none; }
   .auth-data-notice{ font-size:12.5px; color:var(--ball); background:rgba(206,222,66,0.1); border:1px solid rgba(206,222,66,0.3); border-radius:4px; padding:10px 12px; line-height:1.4; }
   .auth-welcome{ font-size:13px; color:rgba(244,241,230,0.85); }
+  .account-card{ display:grid; gap:4px; }
+  .account-greeting{ font-family:'Anton',sans-serif; font-size:18px; color:var(--ball); text-transform:uppercase; letter-spacing:0.02em; }
+  .account-email{ font-size:13px; color:rgba(244,241,230,0.65); margin-bottom:10px; }
+  .account-tier-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .account-tier-badge{
+    font-size:13px; font-weight:700; padding:5px 12px; border-radius:20px;
+    background:rgba(206,222,66,0.15); border:1px solid rgba(206,222,66,0.4); color:var(--ball);
+  }
+  .account-points{ font-size:12.5px; color:rgba(244,241,230,0.6); }
+  .account-options{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .account-option-btn{
+    padding:9px 16px; font-size:13px; border:1px solid rgba(244,241,230,0.3); background:rgba(244,241,230,0.06); color:var(--line);
+    border-radius:2px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .account-option-btn:hover{ background:rgba(244,241,230,0.12); }
+  .account-option-btn.logout{ border-color:rgba(224,93,93,0.4); color:#e0a5a5; background:transparent; }
+  .account-option-toggle{
+    display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(244,241,230,0.8); cursor:pointer;
+  }
+  .account-option-toggle input{ width:16px; height:16px; cursor:pointer; }
   .my-bookings-list{ margin-top:12px; display:grid; gap:8px; max-width:420px; }
   .my-bookings-list.hidden{ display:none; }
   .my-booking-item{
@@ -351,6 +428,9 @@
     nav{ padding:16px 20px; }
     .logo{ font-size:17px; }
     nav a.cta{ padding:10px 16px; font-size:13px; }
+    .nav-right{ gap:8px; }
+    .nav-account{ width:28px; height:28px; font-size:12px; }
+    #lang-toggle{ padding:6px 9px !important; font-size:11px !important; }
 
     /* Hero */
     .hero{ padding:100px 20px 60px; min-height:70vh; }
@@ -411,9 +491,19 @@
 <body>
 
 <nav>
+  <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Menu">☰</button>
   <div class="logo"><span class="logo-dot"></span>NORTH PADEL</div>
-  <a href="#booking" class="cta" data-i18n="nav_cta">Κλείσε γήπεδο</a>
-  <button type="button" id="lang-toggle" onclick="toggleLang()" style="margin-left:14px; background:transparent; border:1px solid rgba(244,241,230,0.3); color:var(--line); font-family:'Space Mono',monospace; font-size:12px; padding:8px 12px; border-radius:2px; cursor:pointer; letter-spacing:0.05em;">EN</button>
+  <div id="nav-dropdown" class="nav-dropdown hidden">
+    <a href="#who-we-are" data-i18n="menu_about">Ποιοι είμαστε</a>
+    <a href="#gallery" data-i18n="menu_gallery">Gallery</a>
+    <a href="#services" data-i18n="menu_services">Υπηρεσίες Party</a>
+    <a href="#lobby" data-i18n="menu_lobby">Βρες Παίκτη</a>
+  </div>
+  <div class="nav-right">
+    <button type="button" id="nav-account" class="nav-account hidden"></button>
+    <a href="#booking" class="cta" data-i18n="nav_cta">Κλείσε γήπεδο</a>
+    <button type="button" id="lang-toggle" onclick="toggleLang()" style="background:transparent; border:1px solid rgba(244,241,230,0.3); color:var(--line); font-family:'Space Mono',monospace; font-size:12px; padding:8px 12px; border-radius:2px; cursor:pointer; letter-spacing:0.05em;">EN</button>
+  </div>
 </nav>
 
 <section class="hero">
@@ -520,6 +610,135 @@
   </div>
 </section>
 
+<section class="about" id="who-we-are">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="num" data-i18n="about_num">— ΠΟΙΟΙ ΕΙΜΑΣΤΕ</div>
+        <h2 data-i18n="about_h2">North Padel</h2>
+      </div>
+    </div>
+    <p style="max-width:700px; font-size:16px; line-height:1.7; color:var(--muted);" data-i18n="about_body">Το North Padel είναι το γήπεδο padel της γειτονιάς σου στη Νέα Καλλικράτεια. Φτιαγμένο με αγάπη για το άθλημα, φροντίζουμε κάθε λεπτομέρεια — από την ποιότητα του γηπέδου μέχρι τη διάθεσή σου όταν φεύγεις.</p>
+  </div>
+</section>
+
+<section class="about" id="gallery">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="num" data-i18n="gallery_num">— GALLERY</div>
+        <h2 data-i18n="gallery_h2">Δες το γήπεδο</h2>
+      </div>
+    </div>
+    <div class="gallery-grid">
+      <div class="gallery-tile gallery-photo" title="Εξοπλισμός">
+        <img src="gallery-racket.jpg" alt="Babolat Padel racket" loading="lazy">
+        <span class="gallery-category-label" data-i18n="gallery_icon_racket">Εξοπλισμός</span>
+      </div>
+      <div class="gallery-tile gallery-category" data-photos="gallery-1.jpg">
+        <img src="gallery-1.jpg" alt="Τουρνουά North Padel" loading="lazy">
+        <span class="gallery-category-label" data-i18n="gallery_cat_tournament">🏆 Τουρνουά</span>
+      </div>
+      <div class="gallery-tile">🎉</div>
+      <div class="gallery-tile gallery-icon" title="Snooker">
+        <svg viewBox="0 0 100 100" width="60" height="40">
+          <rect x="5" y="20" width="90" height="55" rx="4" fill="var(--clay)"/>
+          <rect x="12" y="27" width="76" height="41" fill="#2f6b4f"/>
+          <circle cx="12" cy="27" r="6" fill="#111"/><circle cx="50" cy="24" r="6" fill="#111"/><circle cx="88" cy="27" r="6" fill="#111"/>
+          <circle cx="12" cy="68" r="6" fill="#111"/><circle cx="50" cy="71" r="6" fill="#111"/><circle cx="88" cy="68" r="6" fill="#111"/>
+          <circle cx="40" cy="47" r="7" fill="#f4f1e6"/><circle cx="63" cy="52" r="7" fill="var(--ball)"/>
+        </svg>
+        <span class="gallery-icon-label" data-i18n="gallery_icon_snooker">🎱 Snooker</span>
+      </div>
+      <div class="gallery-tile gallery-photo" title="Εγκαταστάσεις">
+        <img src="gallery-facilities.jpg" alt="Εγκαταστάσεις North Padel" loading="lazy">
+        <span class="gallery-category-label" data-i18n="gallery_icon_facilities">Εγκαταστάσεις</span>
+      </div>
+      <div class="gallery-tile">🏓</div>
+    </div>
+    <div id="gallery-lightbox" class="gallery-lightbox hidden">
+      <button type="button" id="gallery-lightbox-close" class="gallery-lightbox-close">✕</button>
+      <button type="button" id="gallery-lightbox-prev" class="gallery-lightbox-nav gallery-lightbox-prev">‹</button>
+      <div class="gallery-lightbox-content"><img id="gallery-lightbox-img" src="" alt=""></div>
+      <button type="button" id="gallery-lightbox-next" class="gallery-lightbox-nav gallery-lightbox-next">›</button>
+    </div>
+    <p class="gallery-note" data-i18n="gallery_note">📸 Φωτογραφίες από το γήπεδο έρχονται σύντομα!</p>
+  </div>
+</section>
+
+<section class="about" id="services">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="num" data-i18n="services_num">— PARTY</div>
+        <h2 data-i18n="services_h2">Υπηρεσίες Party</h2>
+      </div>
+    </div>
+    <p style="max-width:700px; font-size:16px; line-height:1.7; color:var(--muted);" data-i18n="services_body">Κλείσε το γήπεδο για γενέθλια ή εταιρική εκδήλωση. Επικοινώνησε μαζί μας για να φτιάξουμε το πρόγραμμα που σου ταιριάζει.</p>
+  </div>
+</section>
+
+<section class="booking" id="court2">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="num" data-i18n="court2_num">— 2ο ΓΗΠΕΔΟ</div>
+        <h2 data-i18n="court2_h2">Έρχεται σύντομα 🚧</h2>
+      </div>
+    </div>
+    <p style="max-width:700px; font-size:16px; line-height:1.7; color:rgba(244,241,230,0.7);" data-i18n="court2_body">Ετοιμάζουμε ένα δεύτερο γήπεδο padel! Οι κρατήσεις θα ανοίξουν σύντομα — μείνε συνδεδεμένος για να μάθεις πρώτος/η.</p>
+  </div>
+</section>
+
+<section class="booking" id="lobby">
+  <div class="section-inner">
+    <div class="section-head">
+      <div>
+        <div class="num" data-i18n="lobby_num">— ΒΡΕΣ ΠΑΙΚΤΗ</div>
+        <h2 data-i18n="lobby_h2">Ψάχνεις παίκτες;</h2>
+      </div>
+    </div>
+    <p class="auth-intro" data-i18n="lobby_intro">Δημιούργησε μια αγγελία αν σου λείπουν παίκτες για την κράτησή σου, ή δες τις αγγελίες άλλων.</p>
+
+    <div id="lobby-create-wrap" class="hidden">
+      <button type="button" id="show-lobby-form-btn" class="account-option-btn" data-i18n="lobby_create_btn">+ Δημιούργησε αγγελία</button>
+      <form id="lobby-form" class="auth-form hidden">
+        <div class="field full">
+          <label for="lobby-date" data-i18n="lobby_date_lbl">Ημερομηνία</label>
+          <input type="date" id="lobby-date" required>
+        </div>
+        <div class="field full">
+          <label for="lobby-time" data-i18n="lobby_time_lbl">Ώρα</label>
+          <input type="time" id="lobby-time" required>
+        </div>
+        <div class="field full">
+          <label for="lobby-players" data-i18n="lobby_players_lbl">Πόσοι λείπουν</label>
+          <input type="number" id="lobby-players" min="1" max="3" value="1" required>
+        </div>
+        <div class="field full">
+          <label for="lobby-note" data-i18n="lobby_note_lbl">Σημείωση (προαιρετικό)</label>
+          <input type="text" id="lobby-note" maxlength="80">
+        </div>
+        <div class="field full">
+          <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; color:rgba(244,241,230,0.7); text-transform:none; letter-spacing:0;">
+            <input type="checkbox" id="lobby-show-phone" style="width:18px; height:18px; margin-top:2px; flex-shrink:0; cursor:pointer;">
+            <span data-i18n="lobby_show_phone_lbl">Θέλω να δείξω το τηλέφωνό μου σε αυτή την αγγελία</span>
+          </label>
+        </div>
+        <div class="field full">
+          <input type="tel" id="lobby-phone" placeholder="+30 ..." style="display:none;">
+        </div>
+        <div class="field full">
+          <button type="submit" class="btn-primary small" data-i18n="lobby_submit_btn">Δημοσίευση</button>
+        </div>
+      </form>
+    </div>
+    <p id="lobby-login-hint" class="auth-choice-hint" data-i18n="lobby_login_hint">Χρειάζεται να συνδεθείς για να δημιουργήσεις αγγελία.</p>
+
+    <div id="lobby-list" class="my-bookings-list" style="margin-top:20px; max-width:600px;"></div>
+  </div>
+</section>
+
 <section class="booking" id="booking">
   <div class="section-inner">
     <div class="section-head">
@@ -615,9 +834,23 @@
           </div>
 
           <div id="auth-logged-in" class="hidden">
-            <p class="auth-welcome"><span data-i18n="auth_welcome">Συνδέθηκες ως</span> <strong id="auth-user-email"></strong> · <button type="button" id="logout-btn" class="link-btn" data-i18n="auth_logout_btn">Αποσύνδεση</button></p>
-            <button type="button" id="show-my-bookings-btn" class="link-btn" style="margin-top:8px;" data-i18n="my_bookings_btn">Δες τις μελλοντικές κρατήσεις σου</button>
-            <div id="account-bookings-list" class="my-bookings-list hidden"></div>
+            <div class="account-card">
+              <p class="account-greeting" data-i18n="account_greeting">Καλωσήρθες πίσω! 👋</p>
+              <p class="account-email" id="auth-user-email"></p>
+              <div class="account-tier-row">
+                <span class="account-tier-badge" id="account-tier-badge">🟢 Αρχάριος</span>
+                <span class="account-points" id="account-points">0 πόντοι</span>
+              </div>
+              <div class="account-options">
+                <button type="button" id="show-my-bookings-btn" class="account-option-btn" data-i18n="my_bookings_btn">📅 Μελλοντικές κρατήσεις</button>
+                <label class="account-option-toggle">
+                  <input type="checkbox" id="account-marketing-toggle">
+                  <span data-i18n="account_marketing_toggle">📧 Θέλω ενημερώσεις για τουρνουά/προσφορές</span>
+                </label>
+                <button type="button" id="logout-btn" class="account-option-btn logout" data-i18n="auth_logout_btn_full">🚪 Αποσύνδεση</button>
+              </div>
+              <div id="account-bookings-list" class="my-bookings-list hidden"></div>
+            </div>
           </div>
         </div>
 
@@ -940,14 +1173,50 @@
     auth_signup_consent: {el:'Κατανοώ ότι δημιουργώντας λογαριασμό, το email μου θα χρησιμοποιηθεί αποκλειστικά για ενημερώσεις σχετικά με τουρνουά, εκδηλώσεις και προσφορές του North Padel — και μπορώ να διαγραφώ όποτε θέλω.', en:'I understand that by creating an account, my email will be used solely to send updates about North Padel tournaments, events and offers — and I can unsubscribe at any time.'},
     auth_welcome: {el:'Συνδέθηκες ως', en:'Logged in as'},
     auth_logout_btn: {el:'Αποσύνδεση', en:'Log out'},
+    auth_logout_btn_full: {el:'🚪 Αποσύνδεση', en:'🚪 Log out'},
+    account_greeting: {el:'Καλωσήρθες πίσω! 👋', en:'Welcome back! 👋'},
+    account_marketing_toggle: {el:'📧 Θέλω ενημερώσεις για τουρνουά/προσφορές', en:'📧 I want tournament/offer updates'},
     auth_err_login: {el:'Λάθος email ή κωδικός. Δοκίμασε ξανά.', en:'Wrong email or password. Please try again.'},
     auth_err_consent: {el:'Χρειάζεται να αποδεχτείς πρώτα για να δημιουργήσεις λογαριασμό.', en:'You need to agree first to create an account.'},
     auth_err_password: {el:'Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες.', en:'Password must be at least 6 characters.'},
     auth_err_signup: {el:'Δεν έγινε η εγγραφή — ίσως το email χρησιμοποιείται ήδη. Δοκίμασε ξανά ή συνδέσου.', en:"Registration failed — the email may already be in use. Try again or log in."},
-    my_bookings_btn: {el:'Δες τις μελλοντικές κρατήσεις σου', en:'View your upcoming bookings'},
+    my_bookings_btn: {el:'📅 Μελλοντικές κρατήσεις', en:'📅 Upcoming bookings'},
     loading_text: {el:'Φόρτωση...', en:'Loading...'},
     my_bookings_empty: {el:'Δεν έχεις μελλοντικές κρατήσεις αυτή τη στιγμή.', en:"You don't have any upcoming bookings right now."},
     my_bookings_note: {el:'Για ακύρωση, καλέστε μας τηλεφωνικά — δεν γίνεται online.', en:'To cancel, please call us — this cannot be done online.'},
+    menu_about: {el:'Ποιοι είμαστε', en:'About us'},
+    menu_gallery: {el:'Gallery', en:'Gallery'},
+    menu_services: {el:'Υπηρεσίες Party', en:'Party services'},
+    menu_lobby: {el:'Βρες Παίκτη', en:'Find a Player'},
+    about_num: {el:'— ΠΟΙΟΙ ΕΙΜΑΣΤΕ', en:'— ABOUT US'},
+    about_h2: {el:'North Padel', en:'North Padel'},
+    about_body: {el:'Το North Padel είναι το γήπεδο padel της γειτονιάς σου στη Νέα Καλλικράτεια. Φτιαγμένο με αγάπη για το άθλημα, φροντίζουμε κάθε λεπτομέρεια — από την ποιότητα του γηπέδου μέχρι τη διάθεσή σου όταν φεύγεις.', en:'North Padel is your neighborhood padel court in Nea Kallikrateia. Built with love for the sport, we take care of every detail — from court quality to how you feel when you leave.'},
+    gallery_num: {el:'— GALLERY', en:'— GALLERY'},
+    gallery_h2: {el:'Δες το γήπεδο', en:'See the court'},
+    gallery_note: {el:'📸 Φωτογραφίες από το γήπεδο έρχονται σύντομα!', en:'📸 Photos of the court coming soon!'},
+    gallery_cat_tournament: {el:'🏆 Τουρνουά', en:'🏆 Tournaments'},
+    gallery_icon_racket: {el:'Εξοπλισμός', en:'Equipment'},
+    gallery_icon_snooker: {el:'🎱 Snooker', en:'🎱 Snooker'},
+    gallery_icon_facilities: {el:'Εγκαταστάσεις', en:'Facilities'},
+    services_num: {el:'— PARTY', en:'— PARTY'},
+    services_h2: {el:'Υπηρεσίες Party', en:'Party Services'},
+    services_body: {el:'Κλείσε το γήπεδο για γενέθλια ή εταιρική εκδήλωση. Επικοινώνησε μαζί μας για να φτιάξουμε το πρόγραμμα που σου ταιριάζει.', en:'Book the court for birthdays or corporate events. Contact us to build the program that suits you.'},
+    court2_num: {el:'— 2ο ΓΗΠΕΔΟ', en:'— 2ND COURT'},
+    court2_h2: {el:'Έρχεται σύντομα 🚧', en:'Coming soon 🚧'},
+    court2_body: {el:'Ετοιμάζουμε ένα δεύτερο γήπεδο padel! Οι κρατήσεις θα ανοίξουν σύντομα — μείνε συνδεδεμένος για να μάθεις πρώτος/η.', en:"We're preparing a second padel court! Bookings will open soon — stay logged in to be the first to know."},
+    lobby_num: {el:'— ΒΡΕΣ ΠΑΙΚΤΗ', en:'— FIND A PLAYER'},
+    lobby_h2: {el:'Ψάχνεις παίκτες;', en:'Looking for players?'},
+    lobby_intro: {el:'Δημιούργησε μια αγγελία αν σου λείπουν παίκτες για την κράτησή σου, ή δες τις αγγελίες άλλων.', en:'Post if you need more players for your booking, or check what others are looking for.'},
+    lobby_create_btn: {el:'+ Δημιούργησε αγγελία', en:'+ Create a post'},
+    lobby_date_lbl: {el:'Ημερομηνία', en:'Date'},
+    lobby_time_lbl: {el:'Ώρα', en:'Time'},
+    lobby_players_lbl: {el:'Πόσοι λείπουν', en:'How many are missing'},
+    lobby_note_lbl: {el:'Σημείωση (προαιρετικό)', en:'Note (optional)'},
+    lobby_show_phone_lbl: {el:'Θέλω να δείξω το τηλέφωνό μου σε αυτή την αγγελία', en:'I want to show my phone number on this post'},
+    lobby_submit_btn: {el:'Δημοσίευση', en:'Post'},
+    lobby_login_hint: {el:'Χρειάζεται να συνδεθείς για να δημιουργήσεις αγγελία.', en:'You need to log in to create a post.'},
+    lobby_empty: {el:'Δεν υπάρχουν ανοιχτές αγγελίες αυτή τη στιγμή.', en:'No open posts right now.'},
+    lobby_players_needed: {el:'παίκτης/ες λείπουν', en:'player(s) needed'},
     lbl_players: {el:'Παίκτες', en:'Players'},
     val_players_note: {el:'Απαιτούνται 4 παίκτες ανά κράτηση', en:'4 players are required per booking'},
     val_players_note_2: {el:'Κράτηση για 2 παίκτες', en:'Booking for 2 players'},
@@ -1393,6 +1662,22 @@
     if(which === 'guest'){ document.getElementById('continue-guest-btn').classList.add('active'); }
   }
   document.getElementById('show-login-btn').addEventListener('click', ()=>showAuthForm('login'));
+
+  // ---- top-left hamburger menu ----
+  const navDropdown = document.getElementById('nav-dropdown');
+  document.getElementById('menu-toggle').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    navDropdown.classList.toggle('hidden');
+  });
+  document.querySelectorAll('#nav-dropdown a').forEach(a=>{
+    a.addEventListener('click', ()=> navDropdown.classList.add('hidden'));
+  });
+  document.addEventListener('click', (e)=>{
+    if(!navDropdown.classList.contains('hidden') && !navDropdown.contains(e.target) && e.target.id !== 'menu-toggle'){
+      navDropdown.classList.add('hidden');
+    }
+  });
+
   document.getElementById('show-signup-btn').addEventListener('click', ()=>showAuthForm('signup'));
   document.getElementById('continue-guest-btn').addEventListener('click', ()=>{
     showAuthForm('guest');
@@ -1437,7 +1722,7 @@
 
   document.getElementById('logout-btn').addEventListener('click', ()=> firebase.auth().signOut());
 
-  firebase.auth().onAuthStateChanged(user=>{
+  firebase.auth().onAuthStateChanged(async user=>{
     currentUser = user;
     if(user){
       authLoggedOut.classList.add('hidden');
@@ -1449,13 +1734,164 @@
       document.getElementById('auth-panel').classList.add('hidden');
       pathChosen = true;
       if(pendingSlot){ revealBookingForm(pendingSlot.slot); pendingSlot = null; }
+
+      const navAccount = document.getElementById('nav-account');
+      navAccount.textContent = user.email.charAt(0).toUpperCase();
+      navAccount.title = user.email;
+      navAccount.classList.remove('hidden');
+      document.getElementById('lobby-create-wrap').classList.remove('hidden');
+      document.getElementById('lobby-login-hint').style.display = 'none';
+
+      // load the account's current marketing preference into the toggle
+      try{
+        const idToken = await user.getIdToken();
+        const res = await fetch(`${FB_URL}/users/${user.uid}.json?auth=${idToken}`);
+        const profile = await res.json();
+        document.getElementById('account-marketing-toggle').checked = !!(profile && profile.marketingOptIn);
+        setTierBadge((profile && profile.points) || 0);
+      }catch(e){ setTierBadge(0); /* leave toggle at default if this fails */ }
     } else {
       authLoggedOut.classList.remove('hidden');
       authLoggedIn.classList.add('hidden');
       guestEmailFields.classList.remove('hidden');
+      document.getElementById('lobby-create-wrap').classList.add('hidden');
+      document.getElementById('lobby-login-hint').style.display = '';
       pathChosen = false;
       document.getElementById('booking-form').classList.add('hidden');
+      document.getElementById('nav-account').classList.add('hidden');
     }
+  });
+
+  document.getElementById('nav-account').addEventListener('click', ()=>{
+    document.getElementById('booking').scrollIntoView({behavior:'smooth'});
+  });
+
+  // ---- "find a player" lobby (bulletin board) ----
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---- gallery category lightbox (with swipe/arrow carousel) ----
+  let galleryPhotos = [];
+  let galleryIndex = 0;
+  function showGalleryPhoto(i){
+    galleryIndex = (i + galleryPhotos.length) % galleryPhotos.length;
+    document.getElementById('gallery-lightbox-img').src = galleryPhotos[galleryIndex];
+    const multi = galleryPhotos.length > 1;
+    document.getElementById('gallery-lightbox-prev').classList.toggle('hidden', !multi);
+    document.getElementById('gallery-lightbox-next').classList.toggle('hidden', !multi);
+  }
+  document.querySelectorAll('.gallery-category').forEach(tile=>{
+    tile.addEventListener('click', ()=>{
+      galleryPhotos = tile.dataset.photos.split(',').map(s=>s.trim());
+      showGalleryPhoto(0);
+      document.getElementById('gallery-lightbox').classList.remove('hidden');
+    });
+  });
+  document.getElementById('gallery-lightbox-close').addEventListener('click', ()=>{
+    document.getElementById('gallery-lightbox').classList.add('hidden');
+  });
+  document.getElementById('gallery-lightbox').addEventListener('click', (e)=>{
+    if(e.target.id === 'gallery-lightbox') document.getElementById('gallery-lightbox').classList.add('hidden');
+  });
+  document.getElementById('gallery-lightbox-prev').addEventListener('click', ()=> showGalleryPhoto(galleryIndex - 1));
+  document.getElementById('gallery-lightbox-next').addEventListener('click', ()=> showGalleryPhoto(galleryIndex + 1));
+
+  // swipe support
+  let touchStartX = null;
+  const lightboxEl = document.getElementById('gallery-lightbox');
+  lightboxEl.addEventListener('touchstart', (e)=>{ touchStartX = e.changedTouches[0].clientX; });
+  lightboxEl.addEventListener('touchend', (e)=>{
+    if(touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 40){ showGalleryPhoto(galleryIndex + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  const TIERS = [
+    {min:0,  el:'🟢 Αρχάριος',      en:'🟢 Beginner'},
+    {min:5,  el:'🔵 Ερασιτέχνης',   en:'🔵 Amateur'},
+    {min:15, el:'🟡 Μέτριος',       en:'🟡 Intermediate'},
+    {min:30, el:'🟠 Προχωρημένος',  en:'🟠 Advanced'},
+    {min:60, el:'🔴 Πρωταθλητής',   en:'🔴 Champion'}
+  ];
+  function setTierBadge(points){
+    let tier = TIERS[0];
+    for(const t of TIERS){ if(points >= t.min) tier = t; }
+    document.getElementById('account-tier-badge').textContent = currentLang === 'el' ? tier.el : tier.en;
+    document.getElementById('account-points').textContent = currentLang === 'el' ? `${points} πόντοι` : `${points} points`;
+  }
+
+  document.getElementById('lobby-show-phone').addEventListener('change', (e)=>{
+    document.getElementById('lobby-phone').style.display = e.target.checked ? '' : 'none';
+  });
+
+  document.getElementById('show-lobby-form-btn').addEventListener('click', ()=>{
+    document.getElementById('lobby-form').classList.toggle('hidden');
+  });
+
+  document.getElementById('lobby-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if(!currentUser) return;
+    const date = document.getElementById('lobby-date').value;
+    const time = document.getElementById('lobby-time').value;
+    const playersNeeded = document.getElementById('lobby-players').value;
+    const note = document.getElementById('lobby-note').value.trim();
+    const showPhone = document.getElementById('lobby-show-phone').checked;
+    const phone = showPhone ? document.getElementById('lobby-phone').value.trim() : '';
+    try{
+      const idToken = await currentUser.getIdToken();
+      const key = Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      await fetch(`${FB_URL}/lobby/${key}.json?auth=${idToken}`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({uid: currentUser.uid, email: currentUser.email, date, time, playersNeeded, note, phone, createdAt: Date.now()})
+      });
+      e.target.reset();
+      document.getElementById('lobby-form').classList.add('hidden');
+      loadLobbyPosts();
+    }catch(err){ /* silent fail — worst case the post just doesn't show up */ }
+  });
+
+  async function loadLobbyPosts(){
+    const list = document.getElementById('lobby-list');
+    list.innerHTML = `<div class="my-bookings-empty">${L('loading_text')}</div>`;
+    try{
+      const res = await fetch(`${FB_URL}/lobby.json`);
+      const data = await res.json();
+      if(!data){ list.innerHTML = `<div class="my-bookings-empty">${L('lobby_empty')}</div>`; return; }
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+      const posts = Object.values(data).filter(p => p && p.date >= todayStr).sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+      if(posts.length === 0){ list.innerHTML = `<div class="my-bookings-empty">${L('lobby_empty')}</div>`; return; }
+      list.innerHTML = posts.map(p => `
+        <div class="my-booking-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <strong>${formatDate(p.date)} · ${p.time}</strong>
+            <span>${escapeHtml(String(p.playersNeeded))} ${L('lobby_players_needed')}</span>
+          </div>
+          ${p.note ? `<div style="font-size:12.5px; color:rgba(244,241,230,0.7);">${escapeHtml(p.note)}</div>` : ''}
+          ${p.phone ? `<div style="font-size:12.5px; color:var(--ball);">📞 ${escapeHtml(p.phone)}</div>` : ''}
+        </div>
+      `).join('');
+    }catch(err){
+      list.innerHTML = `<div class="my-bookings-empty">${L('lobby_empty')}</div>`;
+    }
+  }
+  loadLobbyPosts();
+
+  document.getElementById('account-marketing-toggle').addEventListener('change', async (e)=>{
+    if(!currentUser) return;
+    try{
+      const idToken = await currentUser.getIdToken();
+      await fetch(`${FB_URL}/users/${currentUser.uid}.json?auth=${idToken}`, {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({marketingOptIn: e.target.checked})
+      });
+    }catch(err){ /* silent — worst case the toggle just didn't save, no need to alarm the user */ }
   });
 
   // ---- "my upcoming bookings" (view only, no cancel) ----
